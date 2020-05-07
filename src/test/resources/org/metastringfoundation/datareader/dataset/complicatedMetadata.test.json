@@ -1,0 +1,31 @@
+{
+  "fields": [
+    {
+      "range": "A2:A",
+      "field": "indicator"
+    }, {
+      "range": "B1:1",
+      "field": "entity.district",
+      "pattern": "(.*) - .*"
+    }, {
+      "range": "B1:1",
+      "field": "settlement",
+      "pattern": ".* - (.*)"
+    }, {
+      "range": "B2:AE",
+      "field": "value"
+    }, {
+      "field": "source",
+      "value": "NFHS"
+    }, {
+      "field": "report",
+      "value": "http://data.gov.in"
+    }, {
+      "field": "duration.start",
+      "value": "2014-01-01"
+    }, {
+      "field": "duration.end",
+      "value": "2015-12-31"
+    }
+  ]
+}
