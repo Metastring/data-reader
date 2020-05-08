@@ -17,8 +17,11 @@
 package org.metastringfoundation.datareader.dataset.table;
 
 import org.metastringfoundation.datareader.dataset.DatasetIntegrityError;
+import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class QueryableFields {
     private List<FieldDescription> fields;
@@ -31,6 +34,14 @@ public class QueryableFields {
         this.fields = fields;
         this.table = table;
         calculateFields();
+    }
+
+    private String parseField(FieldDescription fieldDescription, String rawCellValue) {
+        if (fieldDescription.getCompiledPattern() == null) {
+            return rawCellValue;
+        } else {
+            return RegexHelper.getFirstMatchOrAll(rawCellValue, fieldDescription.getCompiledPattern());
+        }
     }
 
     private void calculateFields() throws DatasetIntegrityError {
@@ -53,7 +64,7 @@ public class QueryableFields {
                     if (!rowMap.containsKey(row)) {
                         rowMap.put(row, new ArrayList<>());
                     }
-                    rowMap.get(row).add(new Field(field.getField(), cell.getValue()));
+                    rowMap.get(row).add(new Field(field.getField(), parseField(field, cell.getValue())));
                 }
             }
 
@@ -65,7 +76,7 @@ public class QueryableFields {
                     if (!columnMap.containsKey(column)) {
                         columnMap.put(column, new ArrayList<>());
                     }
-                    columnMap.get(column).add(new Field(field.getField(), cell.getValue()));
+                    columnMap.get(column).add(new Field(field.getField(), parseField(field, cell.getValue())));
                 }
             }
 

@@ -1,0 +1,22 @@
+{
+  "fields": [
+    {
+      "range": "A2:A",
+      "field": "indicator"
+    },
+    {
+      "range": "B1:1",
+      "field": "entity.state",
+      "pattern": "(.*) - .*"
+    },
+    {
+      "range": "B1:1",
+      "field": "entity.district",
+      "pattern": ".* - (.*)"
+    },
+    {
+      "range": "B2:",
+      "field": "value"
+    }
+  ]
+}

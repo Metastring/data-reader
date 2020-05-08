@@ -16,6 +16,7 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
@@ -96,6 +97,7 @@ public class TableRangeReference {
         return this.endingCell;
     }
 
+    @JsonIgnore
     public RangeType getRangeType() {
         return getRangeType(this.startingCell, this.endingCell);
     }

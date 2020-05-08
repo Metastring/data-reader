@@ -18,6 +18,7 @@ package org.metastringfoundation.datareader.dataset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.metastringfoundation.datareader.dataset.table.*;
 import org.metastringfoundation.datareader.dataset.table.csv.CSVTable;
@@ -33,6 +34,40 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CSVReadingTest {
+    private static Collection<DataPoint> expectedForSampledata;
+
+    @BeforeAll
+    static void generateExpectedForSample() {
+        expectedForSampledata = new HashSet<>();
+
+        DataPoint d1 = new DataPoint();
+        d1.setValueOf("entity.state", "Kerala");
+        d1.setValueOf("entity.district", "Kannur");
+        d1.setValueOf("indicator", "MMR");
+        d1.setValueOf("value", "0.5");
+        expectedForSampledata.add(d1);
+
+        DataPoint d2 = new DataPoint();
+        d2.setValueOf("entity.state", "Kerala");
+        d2.setValueOf("entity.district", "Kannur");
+        d2.setValueOf("indicator", "U5MR");
+        d2.setValueOf("value", "0.6");
+        expectedForSampledata.add(d2);
+
+        DataPoint d3 = new DataPoint();
+        d3.setValueOf("entity.state", "Karnataka");
+        d3.setValueOf("entity.district", "Bangalore");
+        d3.setValueOf("indicator", "MMR");
+        d3.setValueOf("value", "1");
+        expectedForSampledata.add(d3);
+
+        DataPoint d4 = new DataPoint();
+        d4.setValueOf("entity.state", "Karnataka");
+        d4.setValueOf("entity.district", "Bangalore");
+        d4.setValueOf("indicator", "U5MR");
+        d4.setValueOf("value", "1.2");
+        expectedForSampledata.add(d4);
+    }
 
     @Test
     void correctlySerializesDescription() throws JsonProcessingException {
@@ -84,37 +119,23 @@ class CSVReadingTest {
 
         Dataset csvDataset = new TableToDatasetAdapter(table, tableDescription);
         Collection<DataPoint> elements = csvDataset.getData();
-        Collection<DataPoint> expectedElements = new HashSet<>();
 
-        DataPoint d1 = new DataPoint();
-        d1.setValueOf("entity.state", "Kerala");
-        d1.setValueOf("entity.district", "Kannur");
-        d1.setValueOf("indicator", "MMR");
-        d1.setValueOf("value", "0.5");
-        expectedElements.add(d1);
+        assert (elements.containsAll(expectedForSampledata));
+        assert (expectedForSampledata.containsAll(elements));
+    }
 
-        DataPoint d2 = new DataPoint();
-        d2.setValueOf("entity.state", "Kerala");
-        d2.setValueOf("entity.district", "Kannur");
-        d2.setValueOf("indicator", "U5MR");
-        d2.setValueOf("value", "0.6");
-        expectedElements.add(d2);
+    @Test
+    void complicatedFieldsTest() throws DatasetIntegrityError, IOException {
+        String csvPath = this.getClass().getResource("splitCells.csv").getPath();
+        String descriptionPath = this.getClass().getResource("splitCells.metadata.json").getPath();
 
-        DataPoint d3 = new DataPoint();
-        d3.setValueOf("entity.state", "Karnataka");
-        d3.setValueOf("entity.district", "Bangalore");
-        d3.setValueOf("indicator", "MMR");
-        d3.setValueOf("value", "1");
-        expectedElements.add(d3);
+        Table table = CSVTable.fromPath(csvPath);
+        TableDescription tableDescription = TableDescription.fromPath(descriptionPath);
 
-        DataPoint d4 = new DataPoint();
-        d4.setValueOf("entity.state", "Karnataka");
-        d4.setValueOf("entity.district", "Bangalore");
-        d4.setValueOf("indicator", "U5MR");
-        d4.setValueOf("value", "1.2");
-        expectedElements.add(d4);
-
-        assert(elements.containsAll(expectedElements));
-        assert(expectedElements.containsAll(elements));
+        Dataset dataset = new TableToDatasetAdapter(table, tableDescription);
+        Collection<DataPoint> elements = dataset.getData();
+        System.out.println(elements);
+        assert (elements.containsAll(expectedForSampledata));
+        assert (expectedForSampledata.containsAll(elements));
     }
 }

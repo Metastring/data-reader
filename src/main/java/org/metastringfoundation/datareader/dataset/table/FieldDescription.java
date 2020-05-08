@@ -16,13 +16,21 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class FieldDescription {
     private TableRangeReference range;
     private String field;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String pattern;
+
+    @JsonIgnore
+    private Pattern compiledPattern;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<String> replacements;
@@ -41,6 +49,19 @@ public class FieldDescription {
 
     public void setField(String field) {
         this.field = field;
+    }
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+        this.compiledPattern = Pattern.compile(pattern);
+    }
+
+    public Pattern getCompiledPattern() {
+        return compiledPattern;
     }
 
     public List<String> getReplacements() {
