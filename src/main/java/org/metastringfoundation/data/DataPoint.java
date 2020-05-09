@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.metastringfoundation.datareader.dataset;
+package org.metastringfoundation.data;
 
 import java.util.HashMap;
 import java.util.Map;

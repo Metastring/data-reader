@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.metastringfoundation.datareader.dataset;
+package org.metastringfoundation.data;
 
 public class DatasetIntegrityError extends Exception {
     public DatasetIntegrityError(Exception e) {

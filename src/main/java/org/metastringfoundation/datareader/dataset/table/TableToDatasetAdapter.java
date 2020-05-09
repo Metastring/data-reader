@@ -18,9 +18,9 @@ package org.metastringfoundation.datareader.dataset.table;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.metastringfoundation.datareader.dataset.DataPoint;
-import org.metastringfoundation.datareader.dataset.Dataset;
-import org.metastringfoundation.datareader.dataset.DatasetIntegrityError;
+import org.metastringfoundation.data.DataPoint;
+import org.metastringfoundation.data.Dataset;
+import org.metastringfoundation.data.DatasetIntegrityError;
 
 import java.util.ArrayList;
 import java.util.Collection;

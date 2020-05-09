@@ -16,12 +16,10 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
-import org.metastringfoundation.datareader.dataset.DatasetIntegrityError;
+import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class QueryableFields {
     private List<FieldDescription> fields;

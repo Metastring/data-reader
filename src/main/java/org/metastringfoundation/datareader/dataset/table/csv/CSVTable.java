@@ -19,7 +19,7 @@ package org.metastringfoundation.datareader.dataset.table.csv;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.metastringfoundation.datareader.dataset.DatasetIntegrityError;
+import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.table.Table;
 import org.metastringfoundation.datareader.helpers.FileManager;
 

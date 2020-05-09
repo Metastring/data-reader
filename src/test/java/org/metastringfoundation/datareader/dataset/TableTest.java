@@ -17,6 +17,7 @@
 package org.metastringfoundation.datareader.dataset;
 
 import org.junit.jupiter.api.Test;
+import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.table.TableCell;
 import org.metastringfoundation.datareader.dataset.table.TableRangeReference;
 import org.metastringfoundation.datareader.dataset.table.csv.CSVTable;
