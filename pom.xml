@@ -4,16 +4,6 @@
     <artifactId>data-reader</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <build>
-        <resources>
-            <resource>
-                <!-- project.properties in here need to get picked up and variables replaced -->
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>${project.build.directory}/${project.artifactId}-${project.version}</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

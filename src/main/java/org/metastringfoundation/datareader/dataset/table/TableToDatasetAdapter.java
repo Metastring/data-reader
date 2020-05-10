@@ -49,7 +49,6 @@ public class TableToDatasetAdapter implements Dataset {
             DataPoint dataPoint = new DataPoint(fieldsAtThisCell);
             dataPoints.add(dataPoint);
         }
-
     }
 
     @Override
