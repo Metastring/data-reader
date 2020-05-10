@@ -20,21 +20,72 @@ import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import java.util.*;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.toMap;
 
 public class QueryableFields {
-    private List<FieldDescription> fields;
-    private Table table;
-    private Map<Integer, List<Field>> fieldsInRows;
-    private Map<Integer, List<Field>> fieldsInColumns;
-    private Collection<TableCell> valueCells = new HashSet<>();
+    private final List<FieldDescription> fields;
+    private final Table table;
+    private final Map<Integer, List<FieldData>> rowsAndTheirFields = new HashMap<>();
+    private final Map<Integer, List<FieldData>> columnsAndTheirFields = new HashMap<>();
+    private final Collection<TableCell> valueCells = new HashSet<>();
 
     public QueryableFields(List<FieldDescription> fields, Table table) throws DatasetIntegrityError {
         this.fields = fields;
         this.table = table;
-        calculateFields();
+        calculateFieldValues();
     }
 
-    private String parseField(FieldDescription fieldDescription, String rawCellValue) {
+    private void calculateFieldValues() throws DatasetIntegrityError {
+        for (FieldDescription fieldDescription : fields) {
+            if (fieldDescription.getField().equals("value")) {
+                // value is a special field and needs to be handled separately
+                saveValues(fieldDescription);
+                continue;
+            } else {
+                if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.ROW_AND_COLUMN) {
+                    throw new DatasetIntegrityError("Only value can be in both column and row");
+                }
+            }
+
+            if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.COLUMN_ONLY) {
+                // the fields are written in a column. That means, their values will be applicable to rows.
+                registerFieldToIndex(fieldDescription, TableCell::getRow, rowsAndTheirFields);
+            }
+
+            if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.ROW_ONLY) {
+                // the fields are written in a row. That means, their values will be applicable to columns.
+                registerFieldToIndex(fieldDescription, TableCell::getColumn, columnsAndTheirFields);
+            }
+        }
+    }
+
+    private void saveValues(FieldDescription field) {
+        List<TableCell> cells = table.getRange(field.getRange());
+        valueCells.addAll(cells);
+    }
+
+    private void registerFieldToIndex(
+            FieldDescription field,
+            Function<TableCell, Integer> indexFinder,
+            Map<Integer, List<FieldData>> register
+    ) {
+        String fieldName = field.getField();
+        List<TableCell> cellsOfTheField = table.getRange(field.getRange());
+
+        for (TableCell cell : cellsOfTheField) {
+            String fieldValueInThisCell = parseField(field, cell);
+            FieldData fieldData = new FieldData(fieldName, fieldValueInThisCell);
+            Integer index = indexFinder.apply(cell);
+
+            // https://stackoverflow.com/a/3019388/589184 for what computeIfAbsent does
+            register.computeIfAbsent(index, k -> new ArrayList<>()).add(fieldData);
+        }
+    }
+
+    private String parseField(FieldDescription fieldDescription, TableCell cell) {
+        String rawCellValue = cell.getValue();
         if (fieldDescription.getCompiledPattern() == null) {
             return rawCellValue;
         } else {
@@ -42,69 +93,27 @@ public class QueryableFields {
         }
     }
 
-    private void calculateFields() throws DatasetIntegrityError {
-        fieldsInRows = new HashMap<>();
-        fieldsInColumns = new HashMap<>();
-        for (FieldDescription field: fields) {
-            if (field.getField().equals("value")) {
-                // value is a special field and needs to be handled separately
-                List<TableCell> cells = table.getRange(field.getRange());
-                valueCells.addAll(cells);
-
-                // let us not save value here. only references
-                continue;
-            }
-            if (field.getRange().getRangeType() == TableRangeReference.RangeType.COLUMN_ONLY) {
-                // the fields are written in a column. That means, their values will be applicable to rows.
-                List<TableCell> cells = table.getRange(field.getRange());
-                for (TableCell cell: cells) {
-                    Integer row = cell.getRow();
-                    if (!fieldsInRows.containsKey(row)) {
-                        fieldsInRows.put(row, new ArrayList<>());
-                    }
-                    fieldsInRows.get(row).add(new Field(field.getField(), parseField(field, cell.getValue())));
-                }
-            }
-
-            if (field.getRange().getRangeType() == TableRangeReference.RangeType.ROW_ONLY) {
-                // the fields are written in a row. That means, their values will be applicable to columns.
-                List<TableCell> cells = table.getRange(field.getRange());
-                for (TableCell cell: cells) {
-                    Integer column = cell.getColumn();
-                    if (!fieldsInColumns.containsKey(column)) {
-                        fieldsInColumns.put(column, new ArrayList<>());
-                    }
-                    fieldsInColumns.get(column).add(new Field(field.getField(), parseField(field, cell.getValue())));
-                }
-            }
-
-            if (field.getRange().getRangeType() == TableRangeReference.RangeType.ROW_AND_COLUMN &&
-                    !field.getField().equals("value")
-            ) {
-                throw new DatasetIntegrityError("Only value can be in both column and row");
-            }
-        }
-    }
-
     public Map<String, String> queryFieldsAt(TableCell cell) {
         Map<String, String> fieldsAtThisCell = new HashMap<>();
 
-        if (fieldsInRows.containsKey(cell.getRow())) {
-            List<Field> fields = fieldsInRows.get(cell.getRow());
-            for (Field field: fields) {
-                fieldsAtThisCell.put(field.getName(), field.getValue());
-            }
+        int rowOfThisCell = cell.getRow();
+        if (rowsAndTheirFields.containsKey(rowOfThisCell)) {
+            stashInto(fieldsAtThisCell, rowsAndTheirFields.get(rowOfThisCell));
         }
 
-        if (fieldsInColumns.containsKey(cell.getColumn())) {
-            List<Field> fields = fieldsInColumns.get(cell.getColumn());
-            for (Field field: fields) {
-                fieldsAtThisCell.put(field.getName(), field.getValue());
-            }
+        int columnOfThisCell = cell.getColumn();
+        if (columnsAndTheirFields.containsKey(columnOfThisCell)) {
+            stashInto(fieldsAtThisCell, columnsAndTheirFields.get(columnOfThisCell));
         }
 
         fieldsAtThisCell.put("value", cell.getValue());
         return fieldsAtThisCell;
+    }
+
+    private void stashInto(Map<String, String> targetMap, List<FieldData> fields) {
+        targetMap.putAll(
+                fields.stream().collect(toMap(FieldData::getName, FieldData::getValue))
+        );
     }
 
     public Collection<TableCell> getValueCells() {

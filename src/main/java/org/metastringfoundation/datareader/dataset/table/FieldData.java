@@ -18,11 +18,11 @@ package org.metastringfoundation.datareader.dataset.table;
 
 import java.util.Objects;
 
-public class Field {
+public class FieldData {
     private String name;
     private String value;
 
-    public Field(String name, String value) {
+    public FieldData(String name, String value) {
         this.name = name;
         this.value = value;
     }
@@ -47,9 +47,9 @@ public class Field {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Field field = (Field) o;
-        return name.equals(field.name) &&
-                value.equals(field.value);
+        FieldData fieldData = (FieldData) o;
+        return name.equals(fieldData.name) &&
+                value.equals(fieldData.value);
     }
 
     @Override
