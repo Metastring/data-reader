@@ -16,13 +16,20 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <mainClass>org.metastringfoundation.datareader.Main</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
                     <!-- let us stick to old version, just in case (compatibility with legacy stuff outside) -->
-                    <source>8</source>
-                    <target>8</target>
+                    <release>8</release>
                 </configuration>
             </plugin>
             <plugin>
