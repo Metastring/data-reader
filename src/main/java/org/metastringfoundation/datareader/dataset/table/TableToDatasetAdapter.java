@@ -24,29 +24,36 @@ import org.metastringfoundation.data.DatasetIntegrityError;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 public class TableToDatasetAdapter implements Dataset {
     private static final Logger LOG = LogManager.getLogger(TableToDatasetAdapter.class);
-    private Table table;
-    private TableDescription tableDescription;
+    private final Table table;
+    private final TableDescription tableDescription;
+    private Collection<DataPoint> dataPoints;
 
-    public TableToDatasetAdapter(Table table, TableDescription tableDescription) {
+    public TableToDatasetAdapter(Table table, TableDescription tableDescription) throws DatasetIntegrityError {
         this.table = table;
         this.tableDescription = tableDescription;
+        calculateDataPoints();
     }
 
-    @Override
-    public Collection<DataPoint> getData() throws DatasetIntegrityError {
-        Collection<DataPoint> result = new ArrayList<>();
+    private void calculateDataPoints() throws DatasetIntegrityError {
         QueryableFields queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);
         Collection<TableCell> values = queryableFields.getValueCells();
         for (TableCell valueCell: values) {
             Map<String, String> fieldsAtThisCell = queryableFields.queryFieldsAt(valueCell.getReference());
             fieldsAtThisCell.put("value", valueCell.getValue());
             DataPoint dataPoint = new DataPoint(fieldsAtThisCell);
-            result.add(dataPoint);
+            dataPoints.add(dataPoint);
         }
-        return result;
+
+    }
+
+    @Override
+    public Collection<DataPoint> getData() {
+        return dataPoints;
     }
 }

@@ -19,5 +19,5 @@ package org.metastringfoundation.data;
 import java.util.Collection;
 
 public interface Dataset {
-    Collection<DataPoint> getData() throws DatasetIntegrityError;
+    Collection<DataPoint> getData();
 }
