@@ -7,6 +7,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jackson.version>2.10.3</jackson.version>
+        <!-- let us stick to old version, just in case (compatibility with legacy stuff outside) -->
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
     </properties>
 
     <build>
@@ -17,15 +21,6 @@
                 <version>1.6.0</version>
                 <configuration>
                     <mainClass>org.metastringfoundation.datareader.Main</mainClass>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <!-- let us stick to old version, just in case (compatibility with legacy stuff outside) -->
-                    <release>8</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -61,8 +56,6 @@
             <version>1.4</version>
         </dependency>
 
-
-
         <!-- while reading and writing json metadata and other files -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -82,7 +75,6 @@
             <version>28.2-jre</version>
         </dependency>
 
-
         <!-- test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -97,7 +89,6 @@
             <artifactId>commons-io</artifactId>
             <version>2.6</version>
         </dependency>
-
 
         <!-- dev -->
         <dependency>
