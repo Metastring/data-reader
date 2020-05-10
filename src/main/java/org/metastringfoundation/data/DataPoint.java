@@ -16,13 +16,16 @@
 
 package org.metastringfoundation.data;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import org.metastringfoundation.datareader.helpers.ListToMap;
+import org.metastringfoundation.datareader.helpers.Puttable;
 
-public class DataPoint {
-    private Map<String, String> fields;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
+public class DataPoint implements Puttable<String> {
+    private final Map<String, String> fields;
 
     public DataPoint(Map<String, String> fields) {
         this.fields = fields;
@@ -32,20 +35,102 @@ public class DataPoint {
         this.fields = new HashMap<>();
     }
 
-    public Map<String, String> getFields() {
-        return fields;
+    public static DataPoint of(String ...args) {
+        DataPoint dataPoint = new DataPoint();
+        ListToMap.load(Arrays.asList(args), dataPoint);
+        return dataPoint;
     }
 
-    public void setFields(Map<String, String> fields) {
-        this.fields = fields;
+    public int size() {
+        return fields.size();
     }
 
-    public Optional<String> getValueOf(String key) {
-        return Optional.ofNullable(fields.get(key));
+    public boolean isEmpty() {
+        return fields.isEmpty();
     }
 
-    public void setValueOf(String key, String value) {
-        fields.put(key, value);
+    public boolean containsKey(String key) {
+        return fields.containsKey(key);
+    }
+
+    public boolean containsValue(String value) {
+        return fields.containsValue(value);
+    }
+
+    public String get(String key) {
+        return fields.get(key);
+    }
+
+    public String put(String key, String value) {
+        return fields.put(key, value);
+    }
+
+    public String remove(String key) {
+        return fields.remove(key);
+    }
+
+    public void putAll(Map<? extends String, ? extends String> m) {
+        fields.putAll(m);
+    }
+
+    public void clear() {
+        fields.clear();
+    }
+
+    public Set<String> keySet() {
+        return fields.keySet();
+    }
+
+    public Collection<String> values() {
+        return fields.values();
+    }
+
+    public Set<Map.Entry<String, String>> entrySet() {
+        return fields.entrySet();
+    }
+
+    public String getOrDefault(String key, String defaultValue) {
+        return fields.getOrDefault(key, defaultValue);
+    }
+
+    public void forEach(BiConsumer<? super String, ? super String> action) {
+        fields.forEach(action);
+    }
+
+    public void replaceAll(BiFunction<? super String, ? super String, ? extends String> function) {
+        fields.replaceAll(function);
+    }
+
+    public String putIfAbsent(String key, String value) {
+        return fields.putIfAbsent(key, value);
+    }
+
+    public boolean remove(String key, String value) {
+        return fields.remove(key, value);
+    }
+
+    public boolean replace(String key, String oldValue, String newValue) {
+        return fields.replace(key, oldValue, newValue);
+    }
+
+    public String replace(String key, String value) {
+        return fields.replace(key, value);
+    }
+
+    public String computeIfAbsent(String key, Function<? super String, ? extends String> mappingFunction) {
+        return fields.computeIfAbsent(key, mappingFunction);
+    }
+
+    public String computeIfPresent(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+        return fields.computeIfPresent(key, remappingFunction);
+    }
+
+    public String compute(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+        return fields.compute(key, remappingFunction);
+    }
+
+    public String merge(String key, String value, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+        return fields.merge(key, value, remappingFunction);
     }
 
     @Override

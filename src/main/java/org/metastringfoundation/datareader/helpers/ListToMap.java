@@ -16,27 +16,15 @@
 
 package org.metastringfoundation.datareader.helpers;
 
-import org.junit.jupiter.api.Test;
+import java.util.List;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
-public class JavaUnderstandingTest {
-    private Collection<Integer> instanceCollection;
-
-    @Test
-    public void getNonExistentKeyFromMap() {
-        Map<String, String> someHashMap = new HashMap<>();
-        String nonExistent = someHashMap.get("non-existent key");
-        assertNull(nonExistent);
-    }
-
-    @Test
-    public void uninitializedInstanceCollection() {
-        assertNull(instanceCollection);
+public class ListToMap {
+    public static <T> void load(List<T> list, Puttable<T> maplike) {
+        if (list.size() %2 != 0) {
+            throw new IllegalArgumentException("Can't load to map like without keys and values");
+        }
+        for (int key = 0; key < list.size(); key += 2) {
+            maplike.put(list.get(key), list.get(key + 1));
+        }
     }
 }

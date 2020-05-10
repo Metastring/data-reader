@@ -22,33 +22,29 @@ import org.metastringfoundation.data.DataPoint;
 import org.metastringfoundation.data.Dataset;
 import org.metastringfoundation.data.DatasetIntegrityError;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 public class TableToDatasetAdapter implements Dataset {
     private static final Logger LOG = LogManager.getLogger(TableToDatasetAdapter.class);
     private final Table table;
     private final TableDescription tableDescription;
-    private Collection<DataPoint> dataPoints;
+    private final Collection<DataPoint> dataPoints;
 
     public TableToDatasetAdapter(Table table, TableDescription tableDescription) throws DatasetIntegrityError {
         this.table = table;
         this.tableDescription = tableDescription;
-        calculateDataPoints();
+        this.dataPoints = calculateDataPoints();
     }
 
-    private void calculateDataPoints() throws DatasetIntegrityError {
+    private Collection<DataPoint> calculateDataPoints() throws DatasetIntegrityError {
         QueryableFields queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);
-        Collection<TableCell> values = queryableFields.getValueCells();
-        for (TableCell valueCell: values) {
-            Map<String, String> fieldsAtThisCell = queryableFields.queryFieldsAt(valueCell.getReference());
-            fieldsAtThisCell.put("value", valueCell.getValue());
-            DataPoint dataPoint = new DataPoint(fieldsAtThisCell);
-            dataPoints.add(dataPoint);
-        }
+
+        return queryableFields.getValueCells()
+                .stream()
+                .map(queryableFields::queryFieldsAt)
+                .map(DataPoint::new)
+                .collect(Collectors.toSet());
     }
 
     @Override

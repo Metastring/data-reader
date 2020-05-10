@@ -16,27 +16,6 @@
 
 package org.metastringfoundation.datareader.helpers;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
-public class JavaUnderstandingTest {
-    private Collection<Integer> instanceCollection;
-
-    @Test
-    public void getNonExistentKeyFromMap() {
-        Map<String, String> someHashMap = new HashMap<>();
-        String nonExistent = someHashMap.get("non-existent key");
-        assertNull(nonExistent);
-    }
-
-    @Test
-    public void uninitializedInstanceCollection() {
-        assertNull(instanceCollection);
-    }
+public interface Puttable<T> {
+    public T put(T key, T value);
 }

@@ -24,8 +24,8 @@ import java.util.*;
 public class QueryableFields {
     private List<FieldDescription> fields;
     private Table table;
-    private Map<Integer, List<Field>> rowMap;
-    private Map<Integer, List<Field>> columnMap;
+    private Map<Integer, List<Field>> fieldsInRows;
+    private Map<Integer, List<Field>> fieldsInColumns;
     private Collection<TableCell> valueCells = new HashSet<>();
 
     public QueryableFields(List<FieldDescription> fields, Table table) throws DatasetIntegrityError {
@@ -43,8 +43,8 @@ public class QueryableFields {
     }
 
     private void calculateFields() throws DatasetIntegrityError {
-        rowMap = new HashMap<>();
-        columnMap = new HashMap<>();
+        fieldsInRows = new HashMap<>();
+        fieldsInColumns = new HashMap<>();
         for (FieldDescription field: fields) {
             if (field.getField().equals("value")) {
                 // value is a special field and needs to be handled separately
@@ -59,10 +59,10 @@ public class QueryableFields {
                 List<TableCell> cells = table.getRange(field.getRange());
                 for (TableCell cell: cells) {
                     Integer row = cell.getRow();
-                    if (!rowMap.containsKey(row)) {
-                        rowMap.put(row, new ArrayList<>());
+                    if (!fieldsInRows.containsKey(row)) {
+                        fieldsInRows.put(row, new ArrayList<>());
                     }
-                    rowMap.get(row).add(new Field(field.getField(), parseField(field, cell.getValue())));
+                    fieldsInRows.get(row).add(new Field(field.getField(), parseField(field, cell.getValue())));
                 }
             }
 
@@ -71,10 +71,10 @@ public class QueryableFields {
                 List<TableCell> cells = table.getRange(field.getRange());
                 for (TableCell cell: cells) {
                     Integer column = cell.getColumn();
-                    if (!columnMap.containsKey(column)) {
-                        columnMap.put(column, new ArrayList<>());
+                    if (!fieldsInColumns.containsKey(column)) {
+                        fieldsInColumns.put(column, new ArrayList<>());
                     }
-                    columnMap.get(column).add(new Field(field.getField(), parseField(field, cell.getValue())));
+                    fieldsInColumns.get(column).add(new Field(field.getField(), parseField(field, cell.getValue())));
                 }
             }
 
@@ -86,21 +86,24 @@ public class QueryableFields {
         }
     }
 
-    public Map<String, String> queryFieldsAt(TableCellReference cell) {
+    public Map<String, String> queryFieldsAt(TableCell cell) {
         Map<String, String> fieldsAtThisCell = new HashMap<>();
-        if (rowMap.containsKey(cell.getRow())) {
-            List<Field> fields = rowMap.get(cell.getRow());
+
+        if (fieldsInRows.containsKey(cell.getRow())) {
+            List<Field> fields = fieldsInRows.get(cell.getRow());
             for (Field field: fields) {
                 fieldsAtThisCell.put(field.getName(), field.getValue());
             }
         }
 
-        if (columnMap.containsKey(cell.getColumn())) {
-            List<Field> fields = columnMap.get(cell.getColumn());
+        if (fieldsInColumns.containsKey(cell.getColumn())) {
+            List<Field> fields = fieldsInColumns.get(cell.getColumn());
             for (Field field: fields) {
                 fieldsAtThisCell.put(field.getName(), field.getValue());
             }
         }
+
+        fieldsAtThisCell.put("value", cell.getValue());
         return fieldsAtThisCell;
     }
 
