@@ -22,6 +22,7 @@ import org.metastringfoundation.datareader.dataset.table.TableCell;
 import org.metastringfoundation.datareader.dataset.table.TableRangeReference;
 import org.metastringfoundation.datareader.dataset.table.csv.CSVTable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TableTest {
 
     @Test
-    public void getRangeGetsRange() throws DatasetIntegrityError {
+    public void getRangeGetsRange() throws DatasetIntegrityError, IOException {
         String simpleSample = this.getClass().getResource("sampleData.csv").getPath();
         CSVTable table = CSVTable.fromPath(simpleSample);
         List<TableCell> obtainedRange = table.getRange(new TableRangeReference("C2:D3"));

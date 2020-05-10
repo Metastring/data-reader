@@ -18,16 +18,13 @@ package org.metastringfoundation.datareader.helpers;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class FileManager {
-    public static Reader getFileReader(Path nioPath) throws Exception {
+    public static Reader getFileReader(Path nioPath) throws FileNotFoundException {
         String path = nioPath.toString();
         return new FileReader(path);
     }

@@ -23,6 +23,7 @@ import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.table.Table;
 import org.metastringfoundation.datareader.helpers.FileManager;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
@@ -34,27 +35,30 @@ public class CSVTable implements Table {
     private int totalRecords;
     private int eachRecordSize;
 
-    public static CSVTable fromPath(String path) throws DatasetIntegrityError {
+    public static CSVTable fromPath(String path) throws DatasetIntegrityError, IOException {
         return new CSVTable(FileManager.getPathFromString(path));
     }
 
-    public CSVTable(Path path) throws DatasetIntegrityError {
-        try {
+    public CSVTable(Path path) throws DatasetIntegrityError, IOException {
+        try (
             Reader csvReader = FileManager.getFileReader(path);
             CSVParser csvParser = new CSVParser(csvReader, CSVFormat.DEFAULT);
-            setRecords(csvParser.getRecords());
-        } catch (Exception e) {
-            throw new DatasetIntegrityError(e);
+        ) {
+            parseRecords(csvParser);
         }
     }
 
-    public CSVTable(String csvString) throws DatasetIntegrityError {
-        try {
+    public CSVTable(String csvString) throws DatasetIntegrityError, IOException {
+        try (
             CSVParser csvParser = CSVParser.parse(csvString, CSVFormat.DEFAULT);
-            setRecords(csvParser.getRecords());
-        } catch (IOException e) {
-            throw new DatasetIntegrityError(e);
+        )
+        {
+            parseRecords(csvParser);
         }
+    }
+
+    private void parseRecords(CSVParser csvParser) throws IOException, DatasetIntegrityError {
+        setRecords(csvParser.getRecords());
     }
 
     private void setRecords(List<CSVRecord> recordsRead) throws DatasetIntegrityError {
