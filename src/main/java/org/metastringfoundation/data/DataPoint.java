@@ -41,6 +41,10 @@ public class DataPoint implements Puttable<String> {
         return dataPoint;
     }
 
+    public Map<String, String> getAsMap() {
+        return fields;
+    }
+
     public int size() {
         return fields.size();
     }
