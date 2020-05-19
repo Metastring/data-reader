@@ -109,12 +109,5 @@
         </dependency>
 
     </dependencies>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>health-heatmap-snapshots</name>
-            <url>http://206.189.142.241/artifactory/libs-snapshot</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>
