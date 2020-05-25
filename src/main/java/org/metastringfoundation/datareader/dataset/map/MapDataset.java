@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class MapDataset implements Dataset {
     private final Collection<DataPoint> data;
 
-    public MapDataset(List<Map<String, String>> dataMaps) {
+    public MapDataset(Collection<Map<String, String>> dataMaps) {
         this.data = dataMaps.stream()
                 .map(DataPoint::new)
                 .collect(Collectors.toCollection(HashSet::new));

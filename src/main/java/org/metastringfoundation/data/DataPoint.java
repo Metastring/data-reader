@@ -147,7 +147,7 @@ public class DataPoint implements Puttable<String> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(fields);
+        return fields.hashCode();
     }
 
     @Override
