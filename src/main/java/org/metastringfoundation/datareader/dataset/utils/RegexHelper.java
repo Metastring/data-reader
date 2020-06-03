@@ -21,11 +21,19 @@ import java.util.regex.Pattern;
 
 public class RegexHelper {
     public static String getFirstMatchOrAll(String raw, Pattern regex) {
+        String match = getFirstMatchOrNull(raw, regex);
+        if (match == null) {
+            return raw;
+        } else {
+            return match;
+        }
+    }
+    public static String getFirstMatchOrNull(String raw, Pattern regex) {
         Matcher matcher = regex.matcher(raw);
 
         if (matcher.find()) {
             return matcher.group(1);
         }
-        return raw;
+        return null;
     }
 }

@@ -1,0 +1,31 @@
+{
+  "fields": [
+    {
+      "range": "A2:A3",
+      "field": "entity.state"
+    },
+    {
+      "range": "B2:B3",
+      "field": "entity.district"
+    },
+    {
+      "range": "C1:C1",
+      "field": "indicator",
+      "pattern": "(.*) - .*"
+    },
+    {
+      "range": "D1:D1",
+      "field": "indicator",
+      "pattern": "(.*)"
+    },
+    {
+      "range": "C1:D1",
+      "field": "settlement",
+      "pattern": ".* - (.*)"
+    },
+    {
+      "range": "C2:D3",
+      "field": "value"
+    }
+  ]
+}

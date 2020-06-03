@@ -31,4 +31,28 @@ class RegexHelperTest {
         String actual = RegexHelper.getFirstMatchOrAll(raw, pattern);
         assertEquals("Karnataka", actual);
     }
+
+    @Test
+    void ifCapturingGroupOptionalAtTheEnd() {
+        Pattern pattern = Pattern.compile(".* - .* - (.*)");
+        String raw = "Karnataka - Bangalore - NFHS";
+        String actual = RegexHelper.getFirstMatchOrAll(raw, pattern);
+        assertEquals("NFHS", actual);
+    }
+
+    @Test
+    void ifCapturingGroupOptionalAndNotPresentInRawText() {
+        Pattern pattern = Pattern.compile(".* - .* - (.*)");
+        String raw = "Karnataka - Bangalore";
+        String actual = RegexHelper.getFirstMatchOrNull(raw, pattern);
+        assertNull(actual);
+    }
+
+    @Test
+    void ifOptionalGroupAtEndAndCaptuingGroupInMiddle() {
+        Pattern pattern = Pattern.compile(".* - (.*) - .*");
+        String raw = "Karnataka - Bangalore - NFHS";
+        String actual = RegexHelper.getFirstMatchOrAll(raw, pattern);
+        assertEquals("Bangalore", actual);
+    }
 }

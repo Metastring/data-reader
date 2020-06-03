@@ -39,22 +39,23 @@ public class QueryableFields {
 
     private void calculateFieldValues() throws DatasetIntegrityError {
         for (FieldDescription fieldDescription : fields) {
+            TableRangeReference.RangeType rangeType = fieldDescription.getRange().getRangeType();
             if (fieldDescription.getField().equals("value")) {
                 // value is a special field and needs to be handled separately
                 saveValues(fieldDescription);
                 continue;
             } else {
-                if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.ROW_AND_COLUMN) {
+                if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
                     throw new DatasetIntegrityError("Only value can be in both column and row");
                 }
             }
 
-            if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.COLUMN_ONLY) {
+            if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a column. That means, their values will be applicable to rows.
                 registerFieldToIndex(fieldDescription, TableCell::getRow, rowsAndTheirFields);
             }
 
-            if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.ROW_ONLY) {
+            if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a row. That means, their values will be applicable to columns.
                 registerFieldToIndex(fieldDescription, TableCell::getColumn, columnsAndTheirFields);
             }
@@ -76,6 +77,9 @@ public class QueryableFields {
 
         for (TableCell cell : cellsOfTheField) {
             String fieldValueInThisCell = parseField(field, cell);
+            if (fieldValueInThisCell == null) {
+                continue;
+            }
             FieldData fieldData = new FieldData(fieldName, fieldValueInThisCell);
             Integer index = indexFinder.apply(cell);
 
@@ -89,7 +93,7 @@ public class QueryableFields {
         if (fieldDescription.getCompiledPattern() == null) {
             return rawCellValue;
         } else {
-            return RegexHelper.getFirstMatchOrAll(rawCellValue, fieldDescription.getCompiledPattern());
+            return RegexHelper.getFirstMatchOrNull(rawCellValue, fieldDescription.getCompiledPattern());
         }
     }
 

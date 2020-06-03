@@ -29,10 +29,7 @@ import org.metastringfoundation.datareader.helpers.Jsonizer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -129,6 +126,48 @@ class CSVReadingTest {
 
         assert (elements.containsAll(expectedForSampledata));
         assert (expectedForSampledata.containsAll(elements));
+    }
+
+    @Test
+    void endToEndTest2() throws IOException, DatasetIntegrityError {
+        String csvPath = this.getClass().getResource("sampleDataWithMissingPattern.csv").getPath();
+        String descriptionPath = this.getClass().getResource("sampleDataWithMissingPattern.metadata.json").getPath();
+
+        Table table = CSVTable.fromPath(csvPath);
+        TableDescription tableDescription = TableDescription.fromPath(descriptionPath);
+
+        Dataset csvDataset = new TableToDatasetAdapter(table, tableDescription);
+        Collection<DataPoint> elements = csvDataset.getData();
+
+        Collection<DataPoint> expected = new HashSet<>(Arrays.asList(
+                DataPoint.of(
+                        "entity.state", "Kerala",
+                        "entity.district", "Kannur",
+                        "indicator", "MMR",
+                        "settlement", "Urban",
+                        "value", "0.5"
+                ), DataPoint.of(
+                        "entity.state", "Kerala",
+                        "entity.district", "Kannur",
+                        "indicator", "U5MR",
+                        "value", "0.6"
+                ), DataPoint.of(
+                        "entity.state", "Karnataka",
+                        "entity.district", "Bangalore",
+                        "indicator", "MMR",
+                        "settlement", "Urban",
+                        "value", "1"
+                ), DataPoint.of(
+                        "entity.state", "Karnataka",
+                        "entity.district", "Bangalore",
+                        "indicator", "U5MR",
+                        "value", "1.2"
+                )
+        ));
+
+        System.out.println(elements);
+        assert (expected.containsAll(elements));
+        assert (elements.containsAll(expected));
     }
 
     @Test
