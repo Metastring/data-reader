@@ -22,8 +22,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class FieldDescription {
+public class FieldDescriptionIntelligent {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private TableRangeReference range;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<TableRangeReference> ranges;
+
     private String field;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -43,6 +48,14 @@ public class FieldDescription {
         this.range = range;
     }
 
+    public List<TableRangeReference> getRanges() {
+        return ranges;
+    }
+
+    public void setRanges(List<TableRangeReference> ranges) {
+        this.ranges = ranges;
+    }
+
     public String getField() {
         return field;
     }
@@ -57,9 +70,7 @@ public class FieldDescription {
 
     public void setPattern(String pattern) {
         this.pattern = pattern;
-        if (pattern != null) {
-            this.compiledPattern = Pattern.compile(pattern);
-        }
+        this.compiledPattern = Pattern.compile(pattern);
     }
 
     public Pattern getCompiledPattern() {
@@ -79,7 +90,7 @@ public class FieldDescription {
         if (super.equals(obj)) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        FieldDescription other = (FieldDescription) obj;
+        FieldDescriptionIntelligent other = (FieldDescriptionIntelligent) obj;
         return (other.getRange().equals(this.getRange())
                 && other.getField().equals(this.getField())
         );

@@ -77,8 +77,8 @@ class CSVReadingTest {
     void correctlySerializesDescription() throws JsonProcessingException {
         TableDescription tableDescription = new TableDescription();
 
-        List<FieldDescription> rangeDescriptionList = new ArrayList<>();
-        FieldDescription range1 = new FieldDescription();
+        List<FieldDescriptionIntelligent> rangeDescriptionList = new ArrayList<>();
+        FieldDescriptionIntelligent range1 = new FieldDescriptionIntelligent();
         range1.setField("indicator");
         range1.setRange(new TableRangeReference("A1:B2"));
         rangeDescriptionList.add(range1);
@@ -97,10 +97,10 @@ class CSVReadingTest {
         String path = this.getClass().getResource(jsonFileName).getPath();
         TableDescription description = TableDescription.fromPath(path);
 
-        FieldDescription range = new FieldDescription();
+        FieldDescriptionIntelligent range = new FieldDescriptionIntelligent();
         range.setRange(new TableRangeReference("A1:B2"));
         range.setField("indicator");
-        List<FieldDescription> fieldDescriptionList = new ArrayList<>();
+        List<FieldDescriptionIntelligent> fieldDescriptionList = new ArrayList<>();
         fieldDescriptionList.add(range);
 
         TableDescription expectedDescription = new TableDescription();

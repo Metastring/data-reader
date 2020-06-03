@@ -17,6 +17,7 @@
 package org.metastringfoundation.datareader.dataset.table;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.metastringfoundation.datareader.dataset.table.csv.FieldDescriptionNormalizer;
 import org.metastringfoundation.datareader.helpers.FileManager;
 import org.metastringfoundation.datareader.helpers.Jsonizer;
 
@@ -35,13 +36,13 @@ public class TableDescription {
     }
 
     @JsonProperty("fields")
-    private List<FieldDescription> fieldDescriptionList;
+    private List<FieldDescriptionIntelligent> fieldDescriptionList;
 
     public List<FieldDescription> getFieldDescriptionList() {
-        return fieldDescriptionList;
+        return FieldDescriptionNormalizer.normalize(fieldDescriptionList);
     }
 
-    public void setFieldDescriptionList(List<FieldDescription> fieldDescriptionList) {
+    public void setFieldDescriptionList(List<FieldDescriptionIntelligent> fieldDescriptionList) {
         this.fieldDescriptionList = fieldDescriptionList;
     }
 
