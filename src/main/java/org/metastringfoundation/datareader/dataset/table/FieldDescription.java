@@ -28,11 +28,6 @@ import java.util.stream.Stream;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FieldDescription {
     private String field;
-
-    private List<TableRangeReference> ranges;
-    private TableRangeReference range;
-    private String pattern;
-
     private String value;
 
     @JsonIgnore
@@ -97,26 +92,22 @@ public class FieldDescription {
         if (o == null || getClass() != o.getClass()) return false;
         FieldDescription that = (FieldDescription) o;
         return Objects.equals(field, that.field) &&
-                Objects.equals(ranges, that.ranges) &&
-                Objects.equals(range, that.range) &&
-                Objects.equals(pattern, that.pattern) &&
                 Objects.equals(value, that.value) &&
+                Objects.equals(singlePatternInRoot, that.singlePatternInRoot) &&
                 Objects.equals(patterns, that.patterns);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(field, ranges, range, pattern, value, patterns);
+        return Objects.hash(field, value, singlePatternInRoot, patterns);
     }
 
     @Override
     public String toString() {
         return "FieldDescription{" +
                 "field='" + field + '\'' +
-                ", ranges=" + ranges +
-                ", range=" + range +
-                ", pattern='" + pattern + '\'' +
                 ", value='" + value + '\'' +
+                ", singlePatternInRoot=" + singlePatternInRoot +
                 ", patterns=" + patterns +
                 '}';
     }
