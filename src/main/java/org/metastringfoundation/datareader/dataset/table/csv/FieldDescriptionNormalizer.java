@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class FieldDescriptionNormalizer {
     public static List<FieldDescription> normalize(List<FieldDescriptionIntelligent> input) {
         List<FieldDescription> result = new ArrayList<>();
-        for (FieldDescriptionIntelligent fieldDescription: input) {
+        for (FieldDescriptionIntelligent fieldDescription : input) {
             if (fieldDescription.getRanges() == null) {
                 result.add(getNormalizedFieldFrom(fieldDescription, fieldDescription.getRange()));
             } else {

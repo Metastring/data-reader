@@ -17,6 +17,7 @@
 package org.metastringfoundation.datareader.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -29,6 +30,7 @@ public class Jsonizer {
     static {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
     }
 
     public static <E> String getJSONString(List<E> someList) throws JsonProcessingException {
@@ -39,7 +41,7 @@ public class Jsonizer {
         return objectMapper.writeValueAsString(object);
     }
 
-    public static Object fromJSON(String json, Class classType) throws IOException {
+    public static <T> Object fromJSON(String json, Class<T> classType) throws IOException {
         return objectMapper.readValue(json, classType);
     }
 }

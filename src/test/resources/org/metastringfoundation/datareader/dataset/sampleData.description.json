@@ -13,7 +13,10 @@
       "field": "indicator"
     },
     {
-      "range": "C2:D3",
+      "ranges": [
+        "C2:C3",
+        "D2:D3"
+      ],
       "field": "value"
     }
   ]
