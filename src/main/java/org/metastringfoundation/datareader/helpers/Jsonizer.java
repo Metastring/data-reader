@@ -17,31 +17,25 @@
 package org.metastringfoundation.datareader.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.List;
 
 public class Jsonizer {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    static {
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-    }
+    private static final JsonMapper jsonMapper = JsonMapper.builder()
+            .enable(JsonReadFeature.ALLOW_TRAILING_COMMA).build();
 
     public static <E> String getJSONString(List<E> someList) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(someList);
+        return jsonMapper.writeValueAsString(someList);
     }
 
     public static String asJSON(Object object) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(object);
+        return jsonMapper.writeValueAsString(object);
     }
 
     public static <T> Object fromJSON(String json, Class<T> classType) throws IOException {
-        return objectMapper.readValue(json, classType);
+        return jsonMapper.readValue(json, classType);
     }
 }
