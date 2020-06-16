@@ -19,29 +19,24 @@ package org.metastringfoundation.datareader.dataset.table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FieldDescription {
-    private TableRangeReference range;
     private String field;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<TableRangeReference> ranges;
+    private TableRangeReference range;
     private String pattern;
 
     @JsonIgnore
-    private Pattern compiledPattern;
+    private FieldRangesPatternPair singlePatternInRoot;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<String> replacements;
-
-    public TableRangeReference getRange() {
-        return range;
-    }
-
-    public void setRange(TableRangeReference range) {
-        this.range = range;
-    }
+    private List<FieldRangesPatternPair> patterns;
 
     public String getField() {
         return field;
@@ -51,45 +46,68 @@ public class FieldDescription {
         this.field = field;
     }
 
-    public String getPattern() {
-        return pattern;
+    public void setRanges(List<TableRangeReference> ranges) {
+        if (singlePatternInRoot == null) {
+            singlePatternInRoot = new FieldRangesPatternPair();
+        }
+        singlePatternInRoot.setRanges(ranges);
+    }
+
+    public void setRange(TableRangeReference range) {
+        setRanges(Collections.singletonList(range));
     }
 
     public void setPattern(String pattern) {
-        this.pattern = pattern;
-        if (pattern != null) {
-            this.compiledPattern = Pattern.compile(pattern);
+        if (singlePatternInRoot == null) {
+            singlePatternInRoot = new FieldRangesPatternPair();
         }
+        singlePatternInRoot.setPattern(pattern);
     }
 
-    public Pattern getCompiledPattern() {
-        return compiledPattern;
+    public List<FieldRangesPatternPair> getPatterns() {
+        if (singlePatternInRoot == null) {
+            return patterns;
+        }
+        if (patterns == null) {
+            return Collections.singletonList(singlePatternInRoot);
+        }
+        // return a concatenated list
+        return Stream.of(Collections.singletonList(singlePatternInRoot), patterns)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
-    public List<String> getReplacements() {
-        return replacements;
-    }
-
-    public void setReplacements(List<String> replacements) {
-        this.replacements = replacements;
+    public void setPatterns(List<FieldRangesPatternPair> patterns) {
+        this.patterns = patterns;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (super.equals(obj)) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        FieldDescription other = (FieldDescription) obj;
-        return (other.getRange().equals(this.getRange())
-                && other.getField().equals(this.getField())
-        );
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FieldDescription that = (FieldDescription) o;
+        return Objects.equals(field, that.field) &&
+                Objects.equals(ranges, that.ranges) &&
+                Objects.equals(range, that.range) &&
+                Objects.equals(pattern, that.pattern) &&
+                Objects.equals(singlePatternInRoot, that.singlePatternInRoot) &&
+                Objects.equals(patterns, that.patterns);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(field, ranges, range, pattern, singlePatternInRoot, patterns);
     }
 
     @Override
     public String toString() {
         return "FieldDescription{" +
-                "range=" + range +
-                ", field='" + field + '\'' +
+                "field='" + field + '\'' +
+                ", ranges=" + ranges +
+                ", range=" + range +
+                ", pattern='" + pattern + '\'' +
+                ", singlePatternInRoot=" + singlePatternInRoot +
+                ", patterns=" + patterns +
                 '}';
     }
 }

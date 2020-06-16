@@ -77,8 +77,8 @@ class CSVReadingTest {
     void correctlySerializesDescription() throws JsonProcessingException {
         TableDescription tableDescription = new TableDescription();
 
-        List<FieldDescriptionIntelligent> rangeDescriptionList = new ArrayList<>();
-        FieldDescriptionIntelligent range1 = new FieldDescriptionIntelligent();
+        List<FieldDescription> rangeDescriptionList = new ArrayList<>();
+        FieldDescription range1 = new FieldDescription();
         range1.setField("indicator");
         range1.setRange(new TableRangeReference("A1:B2"));
         rangeDescriptionList.add(range1);
@@ -87,7 +87,7 @@ class CSVReadingTest {
 
         String json = Jsonizer.asJSON(tableDescription);
 
-        String expectedJson = "{\"fields\":[{\"range\":{\"startingCell\":{\"row\":0,\"column\":0},\"endingCell\":{\"row\":1,\"column\":1}},\"field\":\"indicator\"}]}";
+        String expectedJson = "{\"fields\":[{\"field\":\"indicator\",\"patterns\":[{\"ranges\":[{\"startingCell\":{\"row\":0,\"column\":0},\"endingCell\":{\"row\":1,\"column\":1}}]}]}]}";
         assertEquals(expectedJson, json);
     }
 
@@ -97,10 +97,10 @@ class CSVReadingTest {
         String path = this.getClass().getResource(jsonFileName).getPath();
         TableDescription description = TableDescription.fromPath(path);
 
-        FieldDescriptionIntelligent range = new FieldDescriptionIntelligent();
+        FieldDescription range = new FieldDescription();
         range.setRange(new TableRangeReference("A1:B2"));
         range.setField("indicator");
-        List<FieldDescriptionIntelligent> fieldDescriptionList = new ArrayList<>();
+        List<FieldDescription> fieldDescriptionList = new ArrayList<>();
         fieldDescriptionList.add(range);
 
         TableDescription expectedDescription = new TableDescription();

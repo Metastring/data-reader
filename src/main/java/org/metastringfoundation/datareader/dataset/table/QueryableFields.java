@@ -21,6 +21,8 @@ import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -39,44 +41,59 @@ public class QueryableFields {
 
     private void calculateFieldValues() throws DatasetIntegrityError {
         for (FieldDescription fieldDescription : fields) {
-            TableRangeReference.RangeType rangeType = fieldDescription.getRange().getRangeType();
             if (fieldDescription.getField().equals("value")) {
                 // value is a special field and needs to be handled separately
                 saveValues(fieldDescription);
                 continue;
-            } else {
-                if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
-                    throw new DatasetIntegrityError("Only value can be in both column and row");
-                }
+            }
+            for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
+                processPattern(fieldDescription.getField(), pattern);
+            }
+
+        }
+    }
+
+    private void processPattern(String fieldName, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
+        for (TableRangeReference range : patternDescription.getRanges()) {
+            TableRangeReference.RangeType rangeType = range.getRangeType();
+
+            if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
+                throw new DatasetIntegrityError("Only value can be in both column and row");
             }
 
             if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a column. That means, their values will be applicable to rows.
-                registerFieldToIndex(fieldDescription, TableCell::getRow, rowsAndTheirFields);
+                registerFieldToIndex(fieldName, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
             }
 
-            if (fieldDescription.getRange().getRangeType() == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
+            if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a row. That means, their values will be applicable to columns.
-                registerFieldToIndex(fieldDescription, TableCell::getColumn, columnsAndTheirFields);
+                registerFieldToIndex(fieldName, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
             }
         }
     }
 
     private void saveValues(FieldDescription field) {
-        List<TableCell> cells = table.getRange(field.getRange());
+        List<TableCell> cells = field.getPatterns().stream()
+                .map(FieldRangesPatternPair::getRanges)
+                .flatMap(List::stream)
+                .map(table::getRange)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
         valueCells.addAll(cells);
     }
 
     private void registerFieldToIndex(
-            FieldDescription field,
+            String fieldName,
+            Pattern pattern,
+            TableRangeReference range,
             Function<TableCell, Integer> indexFinder,
             Map<Integer, List<FieldData>> register
     ) {
-        String fieldName = field.getField();
-        List<TableCell> cellsOfTheField = table.getRange(field.getRange());
+        List<TableCell> cellsOfTheField = table.getRange(range);
 
         for (TableCell cell : cellsOfTheField) {
-            String fieldValueInThisCell = parseField(field, cell);
+            String fieldValueInThisCell = parseField(pattern, cell);
             if (fieldValueInThisCell == null) {
                 continue;
             }
@@ -88,12 +105,12 @@ public class QueryableFields {
         }
     }
 
-    private String parseField(FieldDescription fieldDescription, TableCell cell) {
+    private String parseField(Pattern pattern, TableCell cell) {
         String rawCellValue = cell.getValue();
-        if (fieldDescription.getCompiledPattern() == null) {
+        if (pattern == null) {
             return rawCellValue;
         } else {
-            return RegexHelper.getFirstMatchOrNull(rawCellValue, fieldDescription.getCompiledPattern());
+            return RegexHelper.getFirstMatchOrNull(rawCellValue, pattern);
         }
     }
 
