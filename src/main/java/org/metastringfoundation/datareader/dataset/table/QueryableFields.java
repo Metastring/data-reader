@@ -47,8 +47,10 @@ public class QueryableFields {
                 saveValues(fieldDescription);
                 continue;
             }
-            for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
-                processPattern(fieldDescription, pattern);
+            if (fieldDescription.getPatterns() != null) {
+                for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
+                    processPattern(fieldDescription, pattern);
+                }
             }
 
         }
