@@ -33,6 +33,8 @@ public class FieldDescription {
     private TableRangeReference range;
     private String pattern;
 
+    private String value;
+
     @JsonIgnore
     private FieldRangesPatternPair singlePatternInRoot;
 
@@ -64,6 +66,14 @@ public class FieldDescription {
         singlePatternInRoot.setPattern(pattern);
     }
 
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
     public List<FieldRangesPatternPair> getPatterns() {
         if (singlePatternInRoot == null) {
             return patterns;
@@ -90,13 +100,13 @@ public class FieldDescription {
                 Objects.equals(ranges, that.ranges) &&
                 Objects.equals(range, that.range) &&
                 Objects.equals(pattern, that.pattern) &&
-                Objects.equals(singlePatternInRoot, that.singlePatternInRoot) &&
+                Objects.equals(value, that.value) &&
                 Objects.equals(patterns, that.patterns);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(field, ranges, range, pattern, singlePatternInRoot, patterns);
+        return Objects.hash(field, ranges, range, pattern, value, patterns);
     }
 
     @Override
@@ -106,7 +116,7 @@ public class FieldDescription {
                 ", ranges=" + ranges +
                 ", range=" + range +
                 ", pattern='" + pattern + '\'' +
-                ", singlePatternInRoot=" + singlePatternInRoot +
+                ", value='" + value + '\'' +
                 ", patterns=" + patterns +
                 '}';
     }

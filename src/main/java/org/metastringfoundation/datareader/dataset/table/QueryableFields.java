@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
+import static org.metastringfoundation.datareader.helpers.StringUtils.getValueOrDefault;
 
 public class QueryableFields {
     private final List<FieldDescription> fields;
@@ -47,13 +48,15 @@ public class QueryableFields {
                 continue;
             }
             for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
-                processPattern(fieldDescription.getField(), pattern);
+                processPattern(fieldDescription, pattern);
             }
 
         }
     }
 
-    private void processPattern(String fieldName, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
+    private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
+        String fieldName = fieldDescription.getField();
+        String fieldValue = fieldDescription.getValue();
         for (TableRangeReference range : patternDescription.getRanges()) {
             TableRangeReference.RangeType rangeType = range.getRangeType();
 
@@ -63,12 +66,12 @@ public class QueryableFields {
 
             if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a column. That means, their values will be applicable to rows.
-                registerFieldToIndex(fieldName, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
+                registerFieldToIndex(fieldName, fieldValue, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
             }
 
             if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a row. That means, their values will be applicable to columns.
-                registerFieldToIndex(fieldName, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
+                registerFieldToIndex(fieldName, fieldValue, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
             }
         }
     }
@@ -85,6 +88,7 @@ public class QueryableFields {
 
     private void registerFieldToIndex(
             String fieldName,
+            String fieldValue,
             Pattern pattern,
             TableRangeReference range,
             Function<TableCell, Integer> indexFinder,
@@ -93,7 +97,11 @@ public class QueryableFields {
         List<TableCell> cellsOfTheField = table.getRange(range);
 
         for (TableCell cell : cellsOfTheField) {
-            String fieldValueInThisCell = parseField(pattern, cell);
+            String fieldValueInThisCell = getValueOrDefault(
+                    fieldValue,
+                    parseField(pattern, cell)
+            );
+
             if (fieldValueInThisCell == null) {
                 continue;
             }
