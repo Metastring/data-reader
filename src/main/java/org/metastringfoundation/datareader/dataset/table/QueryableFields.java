@@ -16,7 +16,6 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
-import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import java.util.*;
@@ -32,15 +31,16 @@ public class QueryableFields {
     private final Table table;
     private final Map<Integer, List<FieldData>> rowsAndTheirFields = new HashMap<>();
     private final Map<Integer, List<FieldData>> columnsAndTheirFields = new HashMap<>();
+    private final List<FieldData> universalFields = new ArrayList<>();
     private final Collection<TableCell> valueCells = new HashSet<>();
 
-    public QueryableFields(List<FieldDescription> fields, Table table) throws DatasetIntegrityError {
+    public QueryableFields(List<FieldDescription> fields, Table table) {
         this.fields = fields;
         this.table = table;
         calculateFieldValues();
     }
 
-    private void calculateFieldValues() throws DatasetIntegrityError {
+    private void calculateFieldValues() {
         for (FieldDescription fieldDescription : fields) {
             if (fieldDescription.getField().equals("value")) {
                 // value is a special field and needs to be handled separately
@@ -51,29 +51,40 @@ public class QueryableFields {
                 for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
                     processPattern(fieldDescription, pattern);
                 }
+            } else {
+                if (fieldDescription.getValue() != null) {
+                    // there is a hardcoded value, and that can be applied to the entire table
+                    processHardCodedValueWithoutRange(fieldDescription);
+                }
             }
-
         }
     }
 
-    private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
+    private void processHardCodedValueWithoutRange(FieldDescription fieldDescription) {
         String fieldName = fieldDescription.getField();
-        String fieldValue = fieldDescription.getValue();
+        String fieldHardcodedValue = fieldDescription.getValue();
+        universalFields.add(new FieldData(fieldName, fieldHardcodedValue));
+    }
+
+    private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) {
+        String fieldName = fieldDescription.getField();
+        String fieldHardcodeValue = fieldDescription.getValue();
         for (TableRangeReference range : patternDescription.getRanges()) {
             TableRangeReference.RangeType rangeType = range.getRangeType();
 
             if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
-                throw new DatasetIntegrityError("Only value can be in both column and row");
+                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
+                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
             }
 
             if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a column. That means, their values will be applicable to rows.
-                registerFieldToIndex(fieldName, fieldValue, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
+                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
             }
 
             if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a row. That means, their values will be applicable to columns.
-                registerFieldToIndex(fieldName, fieldValue, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
+                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
             }
         }
     }
@@ -136,6 +147,8 @@ public class QueryableFields {
         if (columnsAndTheirFields.containsKey(columnOfThisCell)) {
             stashInto(fieldsAtThisCell, columnsAndTheirFields.get(columnOfThisCell));
         }
+
+        universalFields.forEach(fieldData -> fieldsAtThisCell.put(fieldData.getName(), fieldData.getValue()));
 
         fieldsAtThisCell.put("value", cell.getValue());
         return fieldsAtThisCell;
