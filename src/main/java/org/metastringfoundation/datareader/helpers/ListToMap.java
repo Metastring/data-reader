@@ -17,10 +17,11 @@
 package org.metastringfoundation.datareader.helpers;
 
 import java.util.List;
+import java.util.Map;
 
 public class ListToMap {
-    public static <T> void load(List<T> list, Puttable<T> maplike) {
-        if (list.size() %2 != 0) {
+    public static <T> void load(List<T> list, Map<T, T> maplike) {
+        if (list.size() % 2 != 0) {
             throw new IllegalArgumentException("Can't load to map like without keys and values");
         }
         for (int key = 0; key < list.size(); key += 2) {

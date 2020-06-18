@@ -17,14 +17,14 @@
 package org.metastringfoundation.data;
 
 import org.metastringfoundation.datareader.helpers.ListToMap;
-import org.metastringfoundation.datareader.helpers.Puttable;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class DataPoint implements Puttable<String> {
+public class DataPoint implements Map<String, String> {
     private final Map<String, String> fields;
 
     public DataPoint(Map<String, String> fields) {
@@ -35,7 +35,7 @@ public class DataPoint implements Puttable<String> {
         this.fields = new HashMap<>();
     }
 
-    public static DataPoint of(String ...args) {
+    public static DataPoint of(String... args) {
         DataPoint dataPoint = new DataPoint();
         ListToMap.load(Arrays.asList(args), dataPoint);
         return dataPoint;
@@ -45,12 +45,35 @@ public class DataPoint implements Puttable<String> {
         return fields;
     }
 
+    @Override
     public int size() {
         return fields.size();
     }
 
+    @Override
     public boolean isEmpty() {
         return fields.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        if (key instanceof String) {
+            return containsKey((String) key);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        if (value instanceof String) {
+            return containsValue((String) value);
+        }
+        return false;
+    }
+
+    @Override
+    public String get(Object key) {
+        return fields.get(key);
     }
 
     public boolean containsKey(String key) {
@@ -65,30 +88,44 @@ public class DataPoint implements Puttable<String> {
         return fields.get(key);
     }
 
+    @Override
     public String put(String key, String value) {
         return fields.put(key, value);
+    }
+
+    @Override
+    public String remove(Object key) {
+        return null;
     }
 
     public String remove(String key) {
         return fields.remove(key);
     }
 
-    public void putAll(Map<? extends String, ? extends String> m) {
+    @Override
+    public void putAll(@Nonnull Map<? extends String, ? extends String> m) {
         fields.putAll(m);
     }
 
+    @Override
     public void clear() {
         fields.clear();
     }
 
+    @Override
+    @Nonnull
     public Set<String> keySet() {
         return fields.keySet();
     }
 
+    @Override
+    @Nonnull
     public Collection<String> values() {
         return fields.values();
     }
 
+    @Override
+    @Nonnull
     public Set<Map.Entry<String, String>> entrySet() {
         return fields.entrySet();
     }
@@ -97,14 +134,17 @@ public class DataPoint implements Puttable<String> {
         return fields.getOrDefault(key, defaultValue);
     }
 
+    @Override
     public void forEach(BiConsumer<? super String, ? super String> action) {
         fields.forEach(action);
     }
 
+    @Override
     public void replaceAll(BiFunction<? super String, ? super String, ? extends String> function) {
         fields.replaceAll(function);
     }
 
+    @Override
     public String putIfAbsent(String key, String value) {
         return fields.putIfAbsent(key, value);
     }
@@ -113,27 +153,33 @@ public class DataPoint implements Puttable<String> {
         return fields.remove(key, value);
     }
 
+    @Override
     public boolean replace(String key, String oldValue, String newValue) {
         return fields.replace(key, oldValue, newValue);
     }
 
+    @Override
     public String replace(String key, String value) {
         return fields.replace(key, value);
     }
 
-    public String computeIfAbsent(String key, Function<? super String, ? extends String> mappingFunction) {
+    @Override
+    public String computeIfAbsent(String key, @Nonnull Function<? super String, ? extends String> mappingFunction) {
         return fields.computeIfAbsent(key, mappingFunction);
     }
 
-    public String computeIfPresent(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+    @Override
+    public String computeIfPresent(String key, @Nonnull BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
         return fields.computeIfPresent(key, remappingFunction);
     }
 
-    public String compute(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+    @Override
+    public String compute(String key, @Nonnull BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
         return fields.compute(key, remappingFunction);
     }
 
-    public String merge(String key, String value, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+    @Override
+    public String merge(String key, @Nonnull String value, @Nonnull BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
         return fields.merge(key, value, remappingFunction);
     }
 
