@@ -58,11 +58,15 @@ public class TableRangeReference {
             reference = reference.concat(" ");
         }
         String[] referenceSplit = reference.split(":");
-        if (referenceSplit.length != 2) {
+        if (referenceSplit.length > 2) {
             throw new IllegalArgumentException("Reference should be of format CELL:CELL");
         }
         this.startingCell = new TableCellReference(referenceSplit[0]);
-        this.endingCell = new TableCellReference(referenceSplit[1]);
+        if (referenceSplit.length == 1) {
+            this.endingCell = this.startingCell;
+        } else {
+            this.endingCell = new TableCellReference(referenceSplit[1]);
+        }
     }
 
     public static RangeType getRangeType(TableCellReference rangeStartCell, TableCellReference rangeEndCell) {
