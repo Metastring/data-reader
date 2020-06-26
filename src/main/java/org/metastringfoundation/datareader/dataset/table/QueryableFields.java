@@ -16,6 +16,7 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
+import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import java.util.*;
@@ -34,13 +35,13 @@ public class QueryableFields {
     private final List<FieldData> universalFields = new ArrayList<>();
     private final Collection<TableCell> valueCells = new HashSet<>();
 
-    public QueryableFields(List<FieldDescription> fields, Table table) {
+    public QueryableFields(List<FieldDescription> fields, Table table) throws DatasetIntegrityError {
         this.fields = fields;
         this.table = table;
         calculateFieldValues();
     }
 
-    private void calculateFieldValues() {
+    private void calculateFieldValues() throws DatasetIntegrityError {
         for (FieldDescription fieldDescription : fields) {
             if (fieldDescription.getField().equals("value")) {
                 // value is a special field and needs to be handled separately
@@ -66,15 +67,14 @@ public class QueryableFields {
         universalFields.add(new FieldData(fieldName, fieldHardcodedValue));
     }
 
-    private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) {
+    private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
         String fieldName = fieldDescription.getField();
         String fieldHardcodeValue = fieldDescription.getValue();
         for (TableRangeReference range : patternDescription.getRanges()) {
             TableRangeReference.RangeType rangeType = range.getRangeType();
 
             if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
-                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
-                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
+                throw new DatasetIntegrityError("Only value can be in both column and row");
             }
 
             if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
