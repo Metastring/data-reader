@@ -16,9 +16,12 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -28,6 +31,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.metastringfoundation.datareader.helpers.StringUtils.getValueOrDefault;
 
 public class QueryableFields {
+    private static final Logger LOG = LogManager.getLogger(QueryableFields.class);
     private final List<FieldDescription> fields;
     private final Table table;
     private final Map<Integer, List<FieldData>> rowsAndTheirFields = new HashMap<>();
@@ -46,18 +50,20 @@ public class QueryableFields {
             if (fieldDescription.getField().equals("value")) {
                 // value is a special field and needs to be handled separately
                 saveValues(fieldDescription);
-                continue;
-            }
-            if (fieldDescription.getPatterns() != null) {
-                for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
-                    processPattern(fieldDescription, pattern);
-                }
+            } else if (fieldDescription.getPatterns() != null) {
+                processFieldWithPattern(fieldDescription);
+            } else if (fieldDescription.getValue() != null) {
+                // there is a hardcoded value, and that can be applied to the entire table
+                processHardCodedValueWithoutRange(fieldDescription);
             } else {
-                if (fieldDescription.getValue() != null) {
-                    // there is a hardcoded value, and that can be applied to the entire table
-                    processHardCodedValueWithoutRange(fieldDescription);
-                }
+                LOG.info("Unusable field: " + fieldDescription.getField());
             }
+        }
+    }
+
+    private void processFieldWithPattern(FieldDescription fieldDescription) throws DatasetIntegrityError {
+        for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
+            processPattern(fieldDescription, pattern);
         }
     }
 
@@ -68,8 +74,6 @@ public class QueryableFields {
     }
 
     private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
-        String fieldName = fieldDescription.getField();
-        String fieldHardcodeValue = fieldDescription.getValue();
         for (TableRangeReference range : patternDescription.getRanges()) {
             TableRangeReference.RangeType rangeType = range.getRangeType();
 
@@ -79,12 +83,12 @@ public class QueryableFields {
 
             if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a column. That means, their values will be applicable to rows.
-                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
+                registerFieldToIndex(fieldDescription, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
             }
 
             if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                 // the fields are written in a row. That means, their values will be applicable to columns.
-                registerFieldToIndex(fieldName, fieldHardcodeValue, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
+                registerFieldToIndex(fieldDescription, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
             }
         }
     }
@@ -100,25 +104,33 @@ public class QueryableFields {
     }
 
     private void registerFieldToIndex(
-            String fieldName,
-            String fieldValue,
+            FieldDescription fieldDescription,
             Pattern pattern,
             TableRangeReference range,
             Function<TableCell, Integer> indexFinder,
             Map<Integer, List<FieldData>> register
     ) {
+        String fieldName = fieldDescription.getField();
+        String fieldValueOverride = fieldDescription.getValue();
+        String fieldValuePrefix = fieldDescription.getPrefix();
+
         List<TableCell> cellsOfTheField = table.getRange(range);
 
         for (TableCell cell : cellsOfTheField) {
-            String fieldValueInThisCell = getValueOrDefault(
-                    fieldValue,
-                    parseField(pattern, cell)
+
+            String parsedWithRegex = parseFieldWithPossibleRegex(pattern, cell);
+
+            String fieldResultantValue = getValueOrDefault(
+                    fieldValueOverride,
+                    parseFieldWithPossibleRegex(pattern, cell)
             );
 
-            if (fieldValueInThisCell == null) {
+            if (fieldResultantValue == null) {
                 continue;
             }
-            FieldData fieldData = new FieldData(fieldName, fieldValueInThisCell);
+            fieldResultantValue = prepend(fieldResultantValue, fieldValuePrefix);
+
+            FieldData fieldData = new FieldData(fieldName, fieldResultantValue);
             Integer index = indexFinder.apply(cell);
 
             // https://stackoverflow.com/a/3019388/589184 for what computeIfAbsent does
@@ -126,7 +138,15 @@ public class QueryableFields {
         }
     }
 
-    private String parseField(Pattern pattern, TableCell cell) {
+    private String prepend(String fieldResultantValue, @Nullable String fieldValuePrefix) {
+        if (fieldValuePrefix == null) {
+            return fieldResultantValue;
+        } else {
+            return fieldValuePrefix.concat(fieldResultantValue);
+        }
+    }
+
+    private String parseFieldWithPossibleRegex(Pattern pattern, TableCell cell) {
         String rawCellValue = cell.getValue();
         if (pattern == null) {
             return rawCellValue;
@@ -135,22 +155,19 @@ public class QueryableFields {
         }
     }
 
-    public Map<String, String> queryFieldsAt(TableCell cell) {
+    public Map<String, String> queryFieldsAt(int row, int column) {
         Map<String, String> fieldsAtThisCell = new HashMap<>();
 
-        int rowOfThisCell = cell.getRow();
-        if (rowsAndTheirFields.containsKey(rowOfThisCell)) {
-            stashInto(fieldsAtThisCell, rowsAndTheirFields.get(rowOfThisCell));
+        if (rowsAndTheirFields.containsKey(row)) {
+            stashInto(fieldsAtThisCell, rowsAndTheirFields.get(row));
         }
 
-        int columnOfThisCell = cell.getColumn();
-        if (columnsAndTheirFields.containsKey(columnOfThisCell)) {
-            stashInto(fieldsAtThisCell, columnsAndTheirFields.get(columnOfThisCell));
+        if (columnsAndTheirFields.containsKey(column)) {
+            stashInto(fieldsAtThisCell, columnsAndTheirFields.get(column));
         }
 
         universalFields.forEach(fieldData -> fieldsAtThisCell.put(fieldData.getName(), fieldData.getValue()));
 
-        fieldsAtThisCell.put("value", cell.getValue());
         return fieldsAtThisCell;
     }
 

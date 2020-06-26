@@ -23,6 +23,7 @@ import org.metastringfoundation.data.Dataset;
 import org.metastringfoundation.data.DatasetIntegrityError;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TableToDatasetAdapter implements Dataset {
@@ -30,21 +31,27 @@ public class TableToDatasetAdapter implements Dataset {
     private final Table table;
     private final TableDescription tableDescription;
     private final Collection<DataPoint> dataPoints;
+    private final QueryableFields queryableFields;
 
     public TableToDatasetAdapter(Table table, TableDescription tableDescription) throws DatasetIntegrityError {
         this.table = table;
         this.tableDescription = tableDescription;
+        queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);
         this.dataPoints = calculateDataPoints();
     }
 
-    private Collection<DataPoint> calculateDataPoints() throws DatasetIntegrityError {
-        QueryableFields queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);
-
+    private Collection<DataPoint> calculateDataPoints() {
         return queryableFields.getValueCells()
                 .stream()
-                .map(queryableFields::queryFieldsAt)
+                .map(this::fetchFieldsAndMakeDataPoint)
                 .map(DataPoint::new)
                 .collect(Collectors.toSet());
+    }
+
+    private Map<String, String> fetchFieldsAndMakeDataPoint(TableCell cell) {
+        Map<String, String> fields = queryableFields.queryFieldsAt(cell.getRow(), cell.getColumn());
+        fields.put("value", cell.getValue());
+        return fields;
     }
 
     @Override
