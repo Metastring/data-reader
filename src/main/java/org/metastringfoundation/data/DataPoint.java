@@ -41,6 +41,11 @@ public class DataPoint implements Map<String, String> {
         return dataPoint;
     }
 
+    public static DataPoint from(Map<String, String> fields) {
+        Map<String, String> fieldsDelegate = new HashMap<>(fields);
+        return new DataPoint(fieldsDelegate);
+    }
+
     public Map<String, String> getAsMap() {
         return fields;
     }
