@@ -30,5 +30,6 @@ jobs:
   update-snapshot:
     needs: build
     name: Trigger snapshot update
+    runs-on: ubuntu-latest
     steps:
       - run: curl http://jenkins.staging.metastringfoundation.free.gen.in/job/data-reader/build?token=${{ secrets.JENKINS_TRIGGER_TOKEN }}
