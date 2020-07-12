@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FieldRangesPatternPair {
@@ -59,6 +60,12 @@ public class FieldRangesPatternPair {
 
     public void setRange(TableRangeReference range) {
         this.ranges = Collections.singletonList(range);
+    }
+
+    public void setRange(String range) {
+        Stream.of(range)
+                .map(TableRangeReference::new)
+                .forEach(this::setRange);
     }
 
     @Override

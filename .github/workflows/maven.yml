@@ -10,22 +10,40 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test-and-build:
 
-    name: Java ${{ matrix.java }}
+    name: Test & Build (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11, 14]
+        java: [14]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK ${{ matrix.java }}
-      uses: actions/setup-java@v1
-      with:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name:
+        run: mvn -B package --file pom.xml
+
+  only-build:
+
+    needs: test-and-build
+    name: Build, Skipping Tests (Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
         java-version: ${{ matrix.java }}
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml -Dmaven.test.skip=true
 
   update-snapshot:
     needs: build
