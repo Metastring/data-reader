@@ -46,7 +46,7 @@ jobs:
         run: mvn -B package --file pom.xml -Dmaven.test.skip=true
 
   update-snapshot:
-    needs: build
+    needs: only-build
     name: Trigger snapshot update
     runs-on: ubuntu-latest
     steps:
