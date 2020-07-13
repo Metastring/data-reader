@@ -100,8 +100,12 @@ public class QueryableFields {
         }
     }
 
-    private void registerFieldToIndex(Map<TableCellReference, String> values, String
-            field, Map<Integer, List<FieldData>> indexAndTheirFields, Function<TableCellReference, Integer> getIndex) {
+    private void registerFieldToIndex(
+            Map<TableCellReference, String> values,
+            String field,
+            Map<Integer, List<FieldData>> indexAndTheirFields,
+            Function<TableCellReference, Integer> getIndex
+    ) {
         values.entrySet().stream()
                 .map(e -> createFieldEntryFrom(e, field, getIndex))
                 .forEach(e -> {
@@ -110,8 +114,11 @@ public class QueryableFields {
                 });
     }
 
-    private Map.Entry<Integer, FieldData> createFieldEntryFrom
-            (Map.Entry<TableCellReference, String> input, String field, Function<TableCellReference, Integer> getIndex) {
+    private Map.Entry<Integer, FieldData> createFieldEntryFrom(
+            Map.Entry<TableCellReference, String> input,
+            String field,
+            Function<TableCellReference, Integer> getIndex
+    ) {
         return Maps.immutableEntry(getIndex.apply(input.getKey()), new FieldData(field, input.getValue()));
     }
 
