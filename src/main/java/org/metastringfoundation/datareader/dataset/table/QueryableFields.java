@@ -16,6 +16,7 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
+import com.google.common.collect.Maps;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.metastringfoundation.data.DatasetIntegrityError;
@@ -28,7 +29,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
-import static org.metastringfoundation.datareader.helpers.StringUtils.getValueOrDefault;
 
 public class QueryableFields {
     private static final Logger LOG = LogManager.getLogger(QueryableFields.class);
@@ -52,9 +52,6 @@ public class QueryableFields {
                 saveValues(fieldDescription);
             } else if (fieldDescription.getPatterns() != null) {
                 processFieldWithPattern(fieldDescription);
-            } else if (fieldDescription.getValue() != null) {
-                // there is a hardcoded value, and that can be applied to the entire table
-                processHardCodedValueWithoutRange(fieldDescription);
             } else {
                 LOG.info("Unusable field: " + fieldDescription.getField());
             }
@@ -62,80 +59,106 @@ public class QueryableFields {
     }
 
     private void processFieldWithPattern(FieldDescription fieldDescription) throws DatasetIntegrityError {
-        for (FieldRangesPatternPair pattern : fieldDescription.getPatterns()) {
+        for (PatternDescription pattern : fieldDescription.getPatterns()) {
             processPattern(fieldDescription, pattern);
         }
     }
 
-    private void processHardCodedValueWithoutRange(FieldDescription fieldDescription) {
+    private void processHardCodedValueWithoutRange(FieldDescription fieldDescription, PatternDescription patternDescription) {
         String fieldName = fieldDescription.getField();
-        String fieldHardcodedValue = fieldDescription.getValue();
+        String fieldHardcodedValue = patternDescription.getValue();
+        if (fieldHardcodedValue == null) {
+            throw new IllegalArgumentException("Field with neither value nor pattern");
+        }
         universalFields.add(new FieldData(fieldName, fieldHardcodedValue));
     }
 
-    private void processPattern(FieldDescription fieldDescription, FieldRangesPatternPair patternDescription) throws DatasetIntegrityError {
-        for (TableRangeReference range : patternDescription.getRanges()) {
-            TableRangeReference.RangeType rangeType = range.getRangeType();
+    private void processPattern(FieldDescription fieldDescription, PatternDescription patternDescription) throws DatasetIntegrityError {
+        LOG.debug("\n\nProcessing " + patternDescription);
+        if (patternDescription.getRanges() == null) {
+            processHardCodedValueWithoutRange(fieldDescription, patternDescription);
+        } else {
+            for (TableRangeReference range : patternDescription.getRanges()) {
+                TableRangeReference.RangeType rangeType = range.getRangeType();
 
-            if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
-                throw new DatasetIntegrityError("Only value can be in both column and row");
-            }
+                if (rangeType == TableRangeReference.RangeType.ROW_AND_COLUMN) {
+                    throw new DatasetIntegrityError("Only value can be in both column and row");
+                }
 
-            if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
-                // the fields are written in a column. That means, their values will be applicable to rows.
-                registerFieldToIndex(fieldDescription, patternDescription.getCompiledPattern(), range, TableCell::getRow, rowsAndTheirFields);
-            }
+                if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
+                    // the fields are written in a column. That means, their values will be applicable to rows.
+                    Map<TableCellReference, String> values = calculatePatternValues(patternDescription);
+                    registerFieldToIndex(values, fieldDescription.getField(), rowsAndTheirFields, TableCellReference::getRow);
+                }
 
-            if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
-                // the fields are written in a row. That means, their values will be applicable to columns.
-                registerFieldToIndex(fieldDescription, patternDescription.getCompiledPattern(), range, TableCell::getColumn, columnsAndTheirFields);
+                if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
+                    // the fields are written in a row. That means, their values will be applicable to columns.
+                    Map<TableCellReference, String> values = calculatePatternValues(patternDescription);
+                    registerFieldToIndex(values, fieldDescription.getField(), columnsAndTheirFields, TableCellReference::getColumn);
+                }
             }
         }
+    }
+
+    private void registerFieldToIndex(Map<TableCellReference, String> values, String
+            field, Map<Integer, List<FieldData>> indexAndTheirFields, Function<TableCellReference, Integer> getIndex) {
+        values.entrySet().stream()
+                .map(e -> createFieldEntryFrom(e, field, getIndex))
+                .forEach(e -> {
+                    // https://stackoverflow.com/a/3019388/589184 for what computeIfAbsent does
+                    indexAndTheirFields.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).add(e.getValue());
+                });
+    }
+
+    private Map.Entry<Integer, FieldData> createFieldEntryFrom
+            (Map.Entry<TableCellReference, String> input, String field, Function<TableCellReference, Integer> getIndex) {
+        return Maps.immutableEntry(getIndex.apply(input.getKey()), new FieldData(field, input.getValue()));
+    }
+
+    private Map<TableCellReference, String> calculatePatternValues(PatternDescription patternDescription) {
+        LOG.debug(patternDescription);
+        return patternDescription.getRanges().stream()
+                .map(table::getRange)
+                .flatMap(List::stream)
+                .peek(LOG::debug)
+                .map(cell -> getValueOfOneCell(cell, patternDescription))
+                .peek(e -> LOG.debug(e.getKey() + ": " + e.getValue()))
+                .filter(e -> {
+                    if (e.getValue() != null) return true;
+                    LOG.info("No value at " + e.getKey().toString() + ", although specified " + patternDescription);
+                    return false;
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private Map.Entry<TableCellReference, String> getValueOfOneCell(TableCell cell, PatternDescription
+            patternDescription) {
+        TableCellReference key = new TableCellReference(cell.getRow(), cell.getColumn());
+        String value;
+        if (patternDescription.getValue() != null) {
+            value = patternDescription.getValue();
+            LOG.debug("Assigned value from pattern hardcoded: " + value);
+        } else if (patternDescription.getCompiledPattern() != null) {
+            value = parseFieldWithPossibleRegex(patternDescription.getCompiledPattern(), cell);
+            LOG.debug("Assigned value from regex: " + value);
+        } else {
+            value = cell.getValue();
+            LOG.debug("Assigned value from cell: " + value);
+        }
+        value = prepend(value, patternDescription.getPrefix());
+        LOG.debug("Prepended prefix. Value now is " + value);
+        return Maps.immutableEntry(key, value);
     }
 
     private void saveValues(FieldDescription field) {
         List<TableCell> cells = field.getPatterns().stream()
-                .map(FieldRangesPatternPair::getRanges)
+                .map(PatternDescription::getRanges)
                 .flatMap(List::stream)
                 .map(table::getRange)
                 .flatMap(List::stream)
+                .distinct()
                 .collect(Collectors.toList());
         valueCells.addAll(cells);
-    }
-
-    private void registerFieldToIndex(
-            FieldDescription fieldDescription,
-            Pattern pattern,
-            TableRangeReference range,
-            Function<TableCell, Integer> indexFinder,
-            Map<Integer, List<FieldData>> register
-    ) {
-        String fieldName = fieldDescription.getField();
-        String fieldValueOverride = fieldDescription.getValue();
-        String fieldValuePrefix = fieldDescription.getPrefix();
-
-        List<TableCell> cellsOfTheField = table.getRange(range);
-
-        for (TableCell cell : cellsOfTheField) {
-
-            String parsedWithRegex = parseFieldWithPossibleRegex(pattern, cell);
-
-            String fieldResultantValue = getValueOrDefault(
-                    fieldValueOverride,
-                    parseFieldWithPossibleRegex(pattern, cell)
-            );
-
-            if (fieldResultantValue == null) {
-                continue;
-            }
-            fieldResultantValue = prepend(fieldResultantValue, fieldValuePrefix);
-
-            FieldData fieldData = new FieldData(fieldName, fieldResultantValue);
-            Integer index = indexFinder.apply(cell);
-
-            // https://stackoverflow.com/a/3019388/589184 for what computeIfAbsent does
-            register.computeIfAbsent(index, k -> new ArrayList<>()).add(fieldData);
-        }
     }
 
     private String prepend(String fieldResultantValue, @Nullable String fieldValuePrefix) {

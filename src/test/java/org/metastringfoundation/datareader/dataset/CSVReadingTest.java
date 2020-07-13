@@ -78,9 +78,7 @@ class CSVReadingTest {
         TableDescription tableDescription = new TableDescription();
 
         List<FieldDescription> rangeDescriptionList = new ArrayList<>();
-        FieldDescription range1 = new FieldDescription();
-        range1.setField("indicator");
-        range1.setRange(new TableRangeReference("A1:B2"));
+        FieldDescription range1 = new FieldDescription("indicator", null, new TableRangeReference("A1:B2"), null, null, null, null);
         rangeDescriptionList.add(range1);
 
         tableDescription.setFieldDescriptionList(rangeDescriptionList);
@@ -97,9 +95,7 @@ class CSVReadingTest {
         String path = this.getClass().getResource(jsonFileName).getPath();
         TableDescription description = TableDescription.fromPath(path);
 
-        FieldDescription range = new FieldDescription();
-        range.setRange(new TableRangeReference("A1:B2"));
-        range.setField("indicator");
+        FieldDescription range = new FieldDescription("indicator", null, new TableRangeReference("A1:B2"), null, null, null, null);
         List<FieldDescription> fieldDescriptionList = new ArrayList<>();
         fieldDescriptionList.add(range);
 

@@ -34,10 +34,7 @@ class QueryableFieldsTest {
     void queryFieldsAtCorrectlyIncludesPrefix() throws IOException, DatasetIntegrityError {
         Table table = new CSVTable("district,mmr,u5mr\nkannur,2,3\nkozhikode,3,4");
         List<FieldDescription> fields = new ArrayList<>();
-        FieldDescription field1 = new FieldDescription();
-        field1.setField("indicator");
-        field1.setRange(new TableRangeReference("B1:1"));
-        field1.setPrefix("IND - ");
+        FieldDescription field1 = new FieldDescription("indicator", null, new TableRangeReference("B1:1"), null, null, null, "IND - ");
         fields.add(field1);
 
         QueryableFields queryableFields = new QueryableFields(fields, table);

@@ -16,7 +16,6 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.metastringfoundation.datareader.helpers.Jsonizer;
 
@@ -38,8 +37,7 @@ class FieldDescriptionTest {
         FieldDescription actual = (FieldDescription) Jsonizer.fromJSON(fieldDescription, FieldDescription.class);
         FieldDescription expected = new FieldDescription();
         expected.setField("patternrange");
-        expected.setRange(new TableRangeReference("A1"));
-        expected.setPattern("(.*)");
+        expected.setPatterns(List.of(new PatternDescription(new TableRangeReference("A1"), null, "(.*)", null, null)));
 
         assertEquals(expected, actual);
     }
@@ -56,8 +54,7 @@ class FieldDescriptionTest {
         FieldDescription actual = (FieldDescription) Jsonizer.fromJSON(fieldDescription, FieldDescription.class);
         FieldDescription expected = new FieldDescription();
         expected.setField("patternvalue");
-        expected.setRange(new TableRangeReference("A2"));
-        expected.setValue("patternvaluevalue");
+        expected.setPatterns(List.of(new PatternDescription(new TableRangeReference("A2"), null, null, "patternvaluevalue", null)));
 
         assertEquals(expected, actual);
     }
@@ -72,16 +69,14 @@ class FieldDescriptionTest {
                 }
                 """;
         FieldDescription actual = (FieldDescription) Jsonizer.fromJSON(fieldDescription, FieldDescription.class);
-        FieldDescription expected = new FieldDescription();
-        expected.setField("plainranges");
-        expected.setRanges(List.of(new TableRangeReference("C2"), new TableRangeReference("D3")));
-        expected.setPattern("(.*)");
-
+        var field = "plainranges";
+        var ranges = List.of(new TableRangeReference("C2"), new TableRangeReference("D3"));
+        var pattern = "(.*)";
+        FieldDescription expected = new FieldDescription(field, null, null, ranges, pattern, null, null);
         assertEquals(expected, actual);
     }
 
     @Test
-    @Disabled
     public void deserializeMultipleRangesNested() throws IOException {
         String fieldDescription = """
                 {
@@ -100,10 +95,10 @@ class FieldDescriptionTest {
         FieldDescription actual = (FieldDescription) Jsonizer.fromJSON(fieldDescription, FieldDescription.class);
         FieldDescription expected = new FieldDescription();
         expected.setField("nestedranges");
-        FieldRangesPatternPair range1 = new FieldRangesPatternPair();
-        range1.setRange("A2");
-        expected.setRanges(List.of(
-        ));
+        PatternDescription range1 = new PatternDescription(new TableRangeReference("A2"), null, null, "nestedrangevalue", null);
+        PatternDescription range2 = new PatternDescription(null, List.of(new TableRangeReference("A3"), new TableRangeReference("A5")), "(.*)", null, null);
+        var ranges = List.of(range1, range2);
+        expected.setPatterns(ranges);
         assertEquals(expected, actual);
     }
 

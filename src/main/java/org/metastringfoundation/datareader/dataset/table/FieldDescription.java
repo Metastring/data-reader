@@ -16,26 +16,49 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FieldDescription {
     private String field;
-    private String value;
+    private List<PatternDescription> patterns;
 
-    private String prefix;
+    public FieldDescription() {
+    }
 
-    @JsonIgnore
-    private FieldRangesPatternPair singlePatternInRoot;
+    @JsonCreator
+    public FieldDescription(
+            @JsonProperty("field") String field,
+            @JsonProperty("patterns") List<PatternDescription> patterns,
+            @JsonProperty("range") TableRangeReference range,
+            @JsonProperty("ranges") List<TableRangeReference> ranges,
+            @JsonProperty("pattern") String pattern,
+            @JsonProperty("value") String value,
+            @JsonProperty("prefix") String prefix
+    ) {
+        if (ranges != null && range != null) {
+            throw new IllegalArgumentException("Both ranges and range specified");
+        }
 
-    private List<FieldRangesPatternPair> patterns;
+        if (patterns != null && value != null) {
+            throw new IllegalArgumentException("Both patterns and value specified. Use 'ranges' to specify multiple ranges");
+        }
+
+        this.field = field;
+        this.patterns = patterns;
+
+        if (patterns == null) {
+            this.patterns = new ArrayList<>();
+            PatternDescription patternDescription = new PatternDescription(range, ranges, pattern, value, prefix);
+            this.patterns.add(patternDescription);
+        }
+    }
 
     public String getField() {
         return field;
@@ -45,54 +68,11 @@ public class FieldDescription {
         this.field = field;
     }
 
-    public String getPrefix() {
-        return prefix;
+    public List<PatternDescription> getPatterns() {
+        return patterns;
     }
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public void setRanges(List<TableRangeReference> ranges) {
-        if (singlePatternInRoot == null) {
-            singlePatternInRoot = new FieldRangesPatternPair();
-        }
-        singlePatternInRoot.setRanges(ranges);
-    }
-
-    public void setRange(TableRangeReference range) {
-        setRanges(Collections.singletonList(range));
-    }
-
-    public void setPattern(String pattern) {
-        if (singlePatternInRoot == null) {
-            singlePatternInRoot = new FieldRangesPatternPair();
-        }
-        singlePatternInRoot.setPattern(pattern);
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public List<FieldRangesPatternPair> getPatterns() {
-        if (singlePatternInRoot == null) {
-            return patterns;
-        }
-        if (patterns == null) {
-            return Collections.singletonList(singlePatternInRoot);
-        }
-        // return a concatenated list
-        return Stream.of(Collections.singletonList(singlePatternInRoot), patterns)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-    }
-
-    public void setPatterns(List<FieldRangesPatternPair> patterns) {
+    public void setPatterns(List<PatternDescription> patterns) {
         this.patterns = patterns;
     }
 
@@ -102,23 +82,18 @@ public class FieldDescription {
         if (o == null || getClass() != o.getClass()) return false;
         FieldDescription that = (FieldDescription) o;
         return Objects.equals(field, that.field) &&
-                Objects.equals(value, that.value) &&
-                Objects.equals(prefix, that.prefix) &&
                 Objects.equals(patterns, that.patterns);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(field, value, prefix, patterns);
+        return Objects.hash(field, patterns);
     }
 
     @Override
     public String toString() {
         return "FieldDescription{" +
                 "field='" + field + '\'' +
-                ", value='" + value + '\'' +
-                ", prefix='" + prefix + '\'' +
-                ", singlePatternInRoot=" + singlePatternInRoot +
                 ", patterns=" + patterns +
                 '}';
     }
