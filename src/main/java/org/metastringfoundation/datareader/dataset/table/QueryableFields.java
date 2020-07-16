@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -87,13 +88,13 @@ public class QueryableFields {
 
                 if (rangeType == TableRangeReference.RangeType.COLUMN_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                     // the fields are written in a column. That means, their values will be applicable to rows.
-                    Map<TableCellReference, String> values = calculatePatternValues(patternDescription);
+                    Map<TableCellReference, String> values = calculatePatternValues(range, patternDescription);
                     registerFieldToIndex(values, fieldDescription.getField(), rowsAndTheirFields, TableCellReference::getRow);
                 }
 
                 if (rangeType == TableRangeReference.RangeType.ROW_ONLY || rangeType == TableRangeReference.RangeType.SINGLE_CELL) {
                     // the fields are written in a row. That means, their values will be applicable to columns.
-                    Map<TableCellReference, String> values = calculatePatternValues(patternDescription);
+                    Map<TableCellReference, String> values = calculatePatternValues(range, patternDescription);
                     registerFieldToIndex(values, fieldDescription.getField(), columnsAndTheirFields, TableCellReference::getColumn);
                 }
             }
@@ -122,9 +123,9 @@ public class QueryableFields {
         return Maps.immutableEntry(getIndex.apply(input.getKey()), new FieldData(field, input.getValue()));
     }
 
-    private Map<TableCellReference, String> calculatePatternValues(PatternDescription patternDescription) {
-        LOG.debug(patternDescription);
-        return patternDescription.getRanges().stream()
+    private Map<TableCellReference, String> calculatePatternValues(TableRangeReference range, PatternDescription patternDescription) {
+        LOG.debug(range);
+        return Stream.of(range)
                 .map(table::getRange)
                 .flatMap(List::stream)
                 .peek(LOG::debug)

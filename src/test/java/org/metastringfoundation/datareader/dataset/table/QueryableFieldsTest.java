@@ -45,4 +45,18 @@ class QueryableFieldsTest {
         assertEquals(expected, actual);
 
     }
+
+    @Test
+    void queryFieldsWhenMulitpleRanges() throws DatasetIntegrityError, IOException {
+        Table table = new CSVTable("""
+                district,mm1,mm1,mm2,mm2
+                somewhere,1,2,3,4
+                """);
+        FieldDescription fieldDescription1 = new FieldDescription("indicator", null, null, List.of(new TableRangeReference("B1"), new TableRangeReference("C1")), null, "MM 1", null);
+        FieldDescription fieldDescription2 = new FieldDescription("indicator", null, null, List.of(new TableRangeReference("D1"), new TableRangeReference("E1")), null, "MM 2", null);
+        QueryableFields queryableFields = new QueryableFields(List.of(fieldDescription1, fieldDescription2), table);
+        Map<String, String> actual = queryableFields.queryFieldsAt(2 - 1, 3 - 1);
+        Map<String, String> expected = Map.of("indicator", "MM 1");
+        assertEquals(expected, actual);
+    }
 }
