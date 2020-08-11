@@ -23,7 +23,6 @@ import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.table.Table;
 import org.metastringfoundation.datareader.helpers.FileManager;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
@@ -41,8 +40,8 @@ public class CSVTable implements Table {
 
     public CSVTable(Path path) throws DatasetIntegrityError, IOException {
         try (
-            Reader csvReader = FileManager.getFileReader(path);
-            CSVParser csvParser = new CSVParser(csvReader, CSVFormat.DEFAULT);
+                Reader csvReader = FileManager.getFileReader(path);
+                CSVParser csvParser = new CSVParser(csvReader, CSVFormat.DEFAULT)
         ) {
             parseRecords(csvParser);
         }
@@ -50,7 +49,7 @@ public class CSVTable implements Table {
 
     public CSVTable(String csvString) throws DatasetIntegrityError, IOException {
         try (
-            CSVParser csvParser = CSVParser.parse(csvString, CSVFormat.DEFAULT);
+                CSVParser csvParser = CSVParser.parse(csvString, CSVFormat.DEFAULT)
         )
         {
             parseRecords(csvParser);

@@ -24,28 +24,28 @@ import java.util.stream.Collectors;
 
 public class ListUtils <T> {
     public static <T> List<List<T>> transpose(List<List<T>> listToTranspose) {
-        List<List<T>> tranposedList = new ArrayList<>();
-        for (int row = 0; row < listToTranspose.size(); row++) {
-            List<T> currentRow = listToTranspose.get(row);
+        List<List<T>> transposedList = new ArrayList<>();
+        for (List<T> currentRow : listToTranspose) {
             for (int column = 0; column < currentRow.size(); column++) {
-                T currentValue = listToTranspose.get(row).get(column);
+                T currentValue = currentRow.get(column);
                 List<T> targetRow;
                 try {
-                    targetRow = tranposedList.get(column);
+                    targetRow = transposedList.get(column);
                     targetRow.add(currentValue);
                 } catch (IndexOutOfBoundsException e) {
                     targetRow = new ArrayList<>();
                     targetRow.add(currentValue);
-                    tranposedList.add(targetRow);
+                    transposedList.add(targetRow);
                 }
             }
         }
 
-        return tranposedList;
+        return transposedList;
     }
-    public static List<String> splitStringToArray(String input, String delimitor) {
-        if (input.contains(delimitor)) {
-            return Arrays.asList(input.split(delimitor));
+
+    public static List<String> splitStringToArray(String input, String delimiter) {
+        if (input.contains(delimiter)) {
+            return Arrays.asList(input.split(delimiter));
         } else {
             return Collections.singletonList(input);
         }

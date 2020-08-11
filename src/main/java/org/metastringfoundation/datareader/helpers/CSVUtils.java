@@ -31,7 +31,7 @@ public class CSVUtils {
         try (
                 BufferedWriter writer = Files.newBufferedWriter(Paths.get(path));
                 CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT
-                                            .withHeader(headersArray));
+                        .withHeader(headersArray))
                 ) {
             for (List<String> row: content) {
                 csvPrinter.printRecord(row);

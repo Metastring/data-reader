@@ -1,6 +1,4 @@
 /**
- * This is the backend for health heat map.
- *
- * The healt heat map requires {@link org.metastringfoundation.datareader.logic}
+ * This is a package that helps read data from spreadsheet files
  */
 package org.metastringfoundation.datareader;
