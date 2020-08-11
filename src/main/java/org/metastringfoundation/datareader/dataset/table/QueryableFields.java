@@ -17,14 +17,13 @@
 package org.metastringfoundation.datareader.dataset.table;
 
 import com.google.common.collect.Maps;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,7 +31,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toMap;
 
 public class QueryableFields {
-    private static final Logger LOG = LogManager.getLogger(QueryableFields.class);
+    private static final Logger LOG = Logger.getLogger(QueryableFields.class.getName());
     private final List<FieldDescription> fields;
     private final Table table;
     private final Map<Integer, List<FieldData>> rowsAndTheirFields = new HashMap<>();
@@ -75,7 +74,7 @@ public class QueryableFields {
     }
 
     private void processPattern(FieldDescription fieldDescription, PatternDescription patternDescription) throws DatasetIntegrityError {
-        LOG.debug("\n\nProcessing " + patternDescription);
+        LOG.fine("\n\nProcessing " + patternDescription);
         if (patternDescription.getRanges() == null) {
             processHardCodedValueWithoutRange(fieldDescription, patternDescription);
         } else {
@@ -124,13 +123,13 @@ public class QueryableFields {
     }
 
     private Map<TableCellReference, String> calculatePatternValues(TableRangeReference range, PatternDescription patternDescription) {
-        LOG.debug(range);
+        LOG.fine(range.toString());
         return Stream.of(range)
                 .map(table::getRange)
                 .flatMap(List::stream)
-                .peek(LOG::debug)
+                .peek(e -> LOG.fine(e.toString()))
                 .map(cell -> getValueOfOneCell(cell, patternDescription))
-                .peek(e -> LOG.debug(e.getKey() + ": " + e.getValue()))
+                .peek(e -> LOG.fine(e.getKey() + ": " + e.getValue()))
                 .filter(e -> {
                     if (e.getValue() != null) return true;
                     LOG.info("No value at " + e.getKey().toString() + ", although specified " + patternDescription);
@@ -145,16 +144,16 @@ public class QueryableFields {
         String value;
         if (patternDescription.getValue() != null) {
             value = patternDescription.getValue();
-            LOG.debug("Assigned value from pattern hardcoded: " + value);
+            LOG.fine("Assigned value from pattern hardcoded: " + value);
         } else if (patternDescription.getCompiledPattern() != null) {
             value = parseFieldWithPossibleRegex(patternDescription.getCompiledPattern(), cell);
-            LOG.debug("Assigned value from regex: " + value);
+            LOG.fine("Assigned value from regex: " + value);
         } else {
             value = cell.getValue();
-            LOG.debug("Assigned value from cell: " + value);
+            LOG.fine("Assigned value from cell: " + value);
         }
         value = prepend(value, patternDescription.getPrefix());
-        LOG.debug("Prepended prefix. Value now is " + value);
+        LOG.fine("Prepended prefix. Value now is " + value);
         return Maps.immutableEntry(key, value);
     }
 
