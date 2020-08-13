@@ -103,14 +103,16 @@ public class QueryableFields {
     private void registerFieldToIndex(
             Map<TableCellReference, String> values,
             String field,
-            Map<Integer, List<FieldData>> indexAndTheirFields,
+            Map<Integer, List<FieldData>> indexesAndTheirFields,
             Function<TableCellReference, Integer> getIndex
     ) {
         values.entrySet().stream()
-                .map(e -> createFieldEntryFrom(e, field, getIndex))
-                .forEach(e -> {
+                .map(cellAndItsValue -> createFieldEntryFrom(cellAndItsValue, field, getIndex))
+                .forEach(indexAndItsField -> {
                     // https://stackoverflow.com/a/3019388/589184 for what computeIfAbsent does
-                    indexAndTheirFields.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).add(e.getValue());
+                    Integer index = indexAndItsField.getKey();
+                    FieldData fieldData = indexAndItsField.getValue();
+                    indexesAndTheirFields.computeIfAbsent(index, k -> new ArrayList<>()).add(fieldData);
                 });
     }
 
@@ -188,6 +190,9 @@ public class QueryableFields {
     public Map<String, String> queryFieldsAt(int row, int column) {
         Map<String, String> fieldsAtThisCell = new HashMap<>();
 
+        // TODO: Get rid of universal fields by putting it into rows and columns fields
+        universalFields.forEach(fieldData -> fieldsAtThisCell.put(fieldData.getName(), fieldData.getValue()));
+
         if (rowsAndTheirFields.containsKey(row)) {
             stashInto(fieldsAtThisCell, rowsAndTheirFields.get(row));
         }
@@ -195,8 +200,6 @@ public class QueryableFields {
         if (columnsAndTheirFields.containsKey(column)) {
             stashInto(fieldsAtThisCell, columnsAndTheirFields.get(column));
         }
-
-        universalFields.forEach(fieldData -> fieldsAtThisCell.put(fieldData.getName(), fieldData.getValue()));
 
         return fieldsAtThisCell;
     }

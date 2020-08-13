@@ -21,12 +21,20 @@ import org.metastringfoundation.data.Dataset;
 import org.metastringfoundation.data.DatasetIntegrityError;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TableToDatasetAdapter implements Dataset {
     private final Collection<DataPoint> dataPoints;
     private final QueryableFields queryableFields;
+
+    public static TableToDatasetAdapter of(Table table, List<TableDescription> tableDescriptions) throws DatasetIntegrityError {
+        TableDescription mergedDescription = TableDescription.ofFields(tableDescriptions.stream()
+                .flatMap(d -> d.getFieldDescriptionList().stream())
+                .collect(Collectors.toList()));
+        return new TableToDatasetAdapter(table, mergedDescription);
+    }
 
     public TableToDatasetAdapter(Table table, TableDescription tableDescription) throws DatasetIntegrityError {
         queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);

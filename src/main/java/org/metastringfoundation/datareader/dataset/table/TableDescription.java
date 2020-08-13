@@ -34,6 +34,12 @@ public class TableDescription {
         return (TableDescription) Jsonizer.fromJSON(jsonString, TableDescription.class);
     }
 
+    public static TableDescription ofFields(List<FieldDescription> fieldDescriptions) {
+        TableDescription description = new TableDescription();
+        description.setFieldDescriptionList(fieldDescriptions);
+        return description;
+    }
+
     @JsonProperty("fields")
     private List<FieldDescription> fieldDescriptionList;
 
