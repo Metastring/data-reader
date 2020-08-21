@@ -16,7 +16,7 @@
         <repository>
             <id>github</id>
             <name>Github Packages</name>
-            <url>https://mvn.pkg.github.com/metastring/data-reader</url>
+            <url>https://maven.pkg.github.com/Metastring/data-reader</url>
         </repository>
     </distributionManagement>
 
