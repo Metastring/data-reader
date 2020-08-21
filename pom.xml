@@ -12,6 +12,14 @@
         <test.compile.jdk.version>14</test.compile.jdk.version>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>Github Packages</name>
+            <url>https://mvn.pkg.github.com/metastring/data-reader</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
