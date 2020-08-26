@@ -16,6 +16,7 @@
 
 package org.metastringfoundation.datareader.dataset.table;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.metastringfoundation.datareader.helpers.FileManager;
 import org.metastringfoundation.datareader.helpers.Jsonizer;
@@ -51,23 +52,36 @@ public class TableDescription {
         this.fieldDescriptionList = fieldDescriptionList;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Object metadata;
+
+    public Object getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Object metadata) {
+        this.metadata = metadata;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TableDescription that = (TableDescription) o;
-        return Objects.equals(fieldDescriptionList, that.fieldDescriptionList);
+        return Objects.equals(fieldDescriptionList, that.fieldDescriptionList) &&
+                Objects.equals(metadata, that.metadata);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fieldDescriptionList);
+        return Objects.hash(fieldDescriptionList, metadata);
     }
 
     @Override
     public String toString() {
         return "TableDescription{" +
                 "fieldDescriptionList=" + fieldDescriptionList +
+                ", metadata=" + metadata +
                 '}';
     }
 }
