@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 public class TableDescription {
     public static TableDescription fromPath(Path path) throws IOException {
@@ -48,6 +49,11 @@ public class TableDescription {
     }
 
     public static TableDescription add(TableDescription first, TableDescription second) {
+        BiFunction<Object, Object, Object> replaceWithSecond = (firstObj, secondObj) -> secondObj;
+        return add(first, second, replaceWithSecond);
+    }
+
+    public static TableDescription add(TableDescription first, TableDescription second, BiFunction<Object, Object, Object> metadataAddFunction) {
         if (first == null) {
             return second;
         }
@@ -61,7 +67,7 @@ public class TableDescription {
         summedFieldDescriptions.addAll(second.getFieldDescriptionList());
         sum.setFieldDescriptionList(summedFieldDescriptions);
 
-        sum.setMetadata(second.metadata);
+        sum.setMetadata(metadataAddFunction.apply(first.metadata, second.metadata));
 
         return sum;
     }
