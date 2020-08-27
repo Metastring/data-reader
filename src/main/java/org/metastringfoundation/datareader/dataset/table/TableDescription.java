@@ -63,8 +63,12 @@ public class TableDescription {
         TableDescription sum = new TableDescription();
 
         List<FieldDescription> summedFieldDescriptions = new ArrayList<>();
-        summedFieldDescriptions.addAll(first.getFieldDescriptionList());
-        summedFieldDescriptions.addAll(second.getFieldDescriptionList());
+        if (first.getFieldDescriptionList() != null) {
+            summedFieldDescriptions.addAll(first.getFieldDescriptionList());
+        }
+        if (second.getFieldDescriptionList() != null) {
+            summedFieldDescriptions.addAll(second.getFieldDescriptionList());
+        }
         sum.setFieldDescriptionList(summedFieldDescriptions);
 
         sum.setMetadata(metadataAddFunction.apply(first.metadata, second.metadata));
