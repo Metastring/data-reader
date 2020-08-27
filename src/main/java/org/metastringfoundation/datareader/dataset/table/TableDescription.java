@@ -22,10 +22,16 @@ import org.metastringfoundation.datareader.helpers.FileManager;
 import org.metastringfoundation.datareader.helpers.Jsonizer;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class TableDescription {
+    public static TableDescription fromPath(Path path) throws IOException {
+        return fromPath(path.toString());
+    }
+
     public static TableDescription fromPath(String path) throws IOException {
         String description = FileManager.getFileContentsAsString(path);
         return fromString(description);
@@ -39,6 +45,25 @@ public class TableDescription {
         TableDescription description = new TableDescription();
         description.setFieldDescriptionList(fieldDescriptions);
         return description;
+    }
+
+    public static TableDescription add(TableDescription first, TableDescription second) {
+        if (first == null) {
+            return second;
+        }
+        if (second == null) {
+            return first;
+        }
+        TableDescription sum = new TableDescription();
+
+        List<FieldDescription> summedFieldDescriptions = new ArrayList<>();
+        summedFieldDescriptions.addAll(first.getFieldDescriptionList());
+        summedFieldDescriptions.addAll(second.getFieldDescriptionList());
+        sum.setFieldDescriptionList(summedFieldDescriptions);
+
+        sum.setMetadata(second.metadata);
+
+        return sum;
     }
 
     @JsonProperty("fields")
