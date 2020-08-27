@@ -38,6 +38,10 @@ public class CSVTable implements Table {
         return new CSVTable(FileManager.getPathFromString(path));
     }
 
+    public static CSVTable fromPath(Path path) throws IOException, DatasetIntegrityError {
+        return new CSVTable(path);
+    }
+
     public CSVTable(Path path) throws DatasetIntegrityError, IOException {
         try (
                 Reader csvReader = FileManager.getFileReader(path);
