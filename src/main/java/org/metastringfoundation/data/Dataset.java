@@ -16,8 +16,8 @@
 
 package org.metastringfoundation.data;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface Dataset {
-    Collection<DataPoint> getData();
+    List<DataPoint> getData();
 }

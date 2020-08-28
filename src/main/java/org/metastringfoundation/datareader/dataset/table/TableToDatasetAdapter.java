@@ -20,13 +20,12 @@ import org.metastringfoundation.data.DataPoint;
 import org.metastringfoundation.data.Dataset;
 import org.metastringfoundation.data.DatasetIntegrityError;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TableToDatasetAdapter implements Dataset {
-    private final Collection<DataPoint> dataPoints;
+    private final List<DataPoint> dataPoints;
     private final QueryableFields queryableFields;
 
     public static TableToDatasetAdapter of(Table table, List<TableDescription> tableDescriptions) throws DatasetIntegrityError {
@@ -41,12 +40,12 @@ public class TableToDatasetAdapter implements Dataset {
         this.dataPoints = calculateDataPoints();
     }
 
-    private Collection<DataPoint> calculateDataPoints() {
+    private List<DataPoint> calculateDataPoints() {
         return queryableFields.getValueCells()
                 .stream()
                 .map(this::fetchFieldsAndMakeDataPoint)
                 .map(DataPoint::new)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     private Map<String, String> fetchFieldsAndMakeDataPoint(TableCell cell) {
@@ -56,7 +55,7 @@ public class TableToDatasetAdapter implements Dataset {
     }
 
     @Override
-    public Collection<DataPoint> getData() {
+    public List<DataPoint> getData() {
         return dataPoints;
     }
 }

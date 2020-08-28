@@ -22,7 +22,6 @@ import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.table.csv.CSVTable;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 class TableToDatasetAdapterTest {
@@ -67,11 +66,11 @@ class TableToDatasetAdapterTest {
         TableDescription tableDescription2 = TableDescription.fromString(descriptionText);
         TableDescription tableDescription1 = TableDescription.fromString(rootDescriptionText);
 
-        Collection<DataPoint> expected = List.of(
+        List<DataPoint> expected = List.of(
                 DataPoint.of("x", "c", "y", "p", "source", "Source 1", "value", "2"),
                 DataPoint.of("x", "c", "y", "q", "source", "Source 2", "value", "4")
         );
-        Collection<DataPoint> actual = TableToDatasetAdapter.of(table, List.of(tableDescription1, tableDescription2)).getData();
+        List<DataPoint> actual = TableToDatasetAdapter.of(table, List.of(tableDescription1, tableDescription2)).getData();
         assert (expected.containsAll(actual));
         assert (actual.containsAll(expected));
     }
@@ -101,13 +100,13 @@ class TableToDatasetAdapterTest {
                 """.stripIndent();
         Table table = new CSVTable(tableText);
         TableDescription tableDescription = TableDescription.fromString(descriptionText);
-        Collection<DataPoint> expected = List.of(
+        List<DataPoint> expected = List.of(
                 DataPoint.of("x", "b", "y", "p", "value", "1"),
                 DataPoint.of("x", "c", "y", "p", "value", "2"),
                 DataPoint.of("x", "b", "y", "q", "value", "3"),
                 DataPoint.of("x", "c", "y", "q", "value", "4")
         );
-        Collection<DataPoint> actual = new TableToDatasetAdapter(table, tableDescription).getData();
+        List<DataPoint> actual = new TableToDatasetAdapter(table, tableDescription).getData();
         assert (expected.containsAll(actual));
         assert (actual.containsAll(expected));
     }

@@ -29,16 +29,18 @@ import org.metastringfoundation.datareader.helpers.Jsonizer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CSVReadingTest {
-    private static Collection<DataPoint> expectedForSampledata;
+    private static List<DataPoint> expectedForSampledata;
 
     @BeforeAll
     static void generateExpectedForSample() {
-        expectedForSampledata = new HashSet<>();
+        expectedForSampledata = new ArrayList<>();
 
         DataPoint d1 = DataPoint.of(
             "entity.state", "Kerala",
@@ -118,7 +120,7 @@ class CSVReadingTest {
         TableDescription tableDescription = TableDescription.fromPath(descriptionPath);
 
         Dataset csvDataset = new TableToDatasetAdapter(table, tableDescription);
-        Collection<DataPoint> elements = csvDataset.getData();
+        List<DataPoint> elements = csvDataset.getData();
 
         assert (elements.containsAll(expectedForSampledata));
         assert (expectedForSampledata.containsAll(elements));
@@ -133,9 +135,9 @@ class CSVReadingTest {
         TableDescription tableDescription = TableDescription.fromPath(descriptionPath);
 
         Dataset csvDataset = new TableToDatasetAdapter(table, tableDescription);
-        Collection<DataPoint> elements = csvDataset.getData();
+        List<DataPoint> elements = csvDataset.getData();
 
-        Collection<DataPoint> expected = new HashSet<>(Arrays.asList(
+        List<DataPoint> expected = new ArrayList<>(Arrays.asList(
                 DataPoint.of(
                         "entity.state", "Kerala",
                         "entity.district", "Kannur",
@@ -175,7 +177,7 @@ class CSVReadingTest {
         TableDescription tableDescription = TableDescription.fromPath(descriptionPath);
 
         Dataset dataset = new TableToDatasetAdapter(table, tableDescription);
-        Collection<DataPoint> elements = dataset.getData();
+        List<DataPoint> elements = dataset.getData();
         System.out.println(elements);
         assert (elements.containsAll(expectedForSampledata));
         assert (expectedForSampledata.containsAll(elements));

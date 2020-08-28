@@ -19,22 +19,21 @@ package org.metastringfoundation.datareader.dataset.map;
 import org.metastringfoundation.data.DataPoint;
 import org.metastringfoundation.data.Dataset;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MapDataset implements Dataset {
-    private final Collection<DataPoint> data;
+    private final List<DataPoint> data;
 
-    public MapDataset(Collection<Map<String, String>> dataMaps) {
+    public MapDataset(List<Map<String, String>> dataMaps) {
         this.data = dataMaps.stream()
                 .map(DataPoint::new)
-                .collect(Collectors.toCollection(HashSet::new));
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<DataPoint> getData() {
+    public List<DataPoint> getData() {
         return data;
     }
 

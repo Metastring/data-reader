@@ -21,7 +21,10 @@ import org.metastringfoundation.data.DatasetIntegrityError;
 import org.metastringfoundation.datareader.dataset.utils.RegexHelper;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -37,7 +40,7 @@ public class QueryableFields {
     private final Map<Integer, List<FieldData>> rowsAndTheirFields = new HashMap<>();
     private final Map<Integer, List<FieldData>> columnsAndTheirFields = new HashMap<>();
     private final List<FieldData> universalFields = new ArrayList<>();
-    private final Collection<TableCell> valueCells = new HashSet<>();
+    private final List<TableCell> valueCells = new ArrayList<>();
 
     public QueryableFields(List<FieldDescription> fields, Table table) throws DatasetIntegrityError {
         this.fields = fields;
@@ -210,7 +213,7 @@ public class QueryableFields {
         );
     }
 
-    public Collection<TableCell> getValueCells() {
+    public List<TableCell> getValueCells() {
         return valueCells;
     }
 }
