@@ -204,6 +204,10 @@ public class QueryableFields {
             stashInto(fieldsAtThisCell, columnsAndTheirFields.get(column));
         }
 
+        fieldsAtThisCell.put("meta.dataFileType", "table");
+        fieldsAtThisCell.put("meta.addressInDataFile.row", String.valueOf(row));
+        fieldsAtThisCell.put("meta.addressInDataFile.column", String.valueOf(column));
+
         return fieldsAtThisCell;
     }
 
