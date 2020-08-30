@@ -27,17 +27,27 @@ import java.util.stream.Collectors;
 public class TableToDatasetAdapter implements Dataset {
     private final List<DataPoint> dataPoints;
     private final QueryableFields queryableFields;
+    private final Boolean shouldAddAddressToDatapoint;
+
+    public TableToDatasetAdapter(Table table, TableDescription tableDescription) throws DatasetIntegrityError {
+        this(table, tableDescription, false);
+    }
+
+    public TableToDatasetAdapter(Table table, TableDescription tableDescription, Boolean shouldAddAddressToDatapoint) throws DatasetIntegrityError {
+        this.shouldAddAddressToDatapoint = shouldAddAddressToDatapoint;
+        queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);
+        this.dataPoints = calculateDataPoints();
+    }
 
     public static TableToDatasetAdapter of(Table table, List<TableDescription> tableDescriptions) throws DatasetIntegrityError {
+        return TableToDatasetAdapter.of(table, tableDescriptions, false);
+    }
+
+    public static TableToDatasetAdapter of(Table table, List<TableDescription> tableDescriptions, Boolean shouldAddAddressToDatapoint) throws DatasetIntegrityError {
         TableDescription mergedDescription = TableDescription.ofFields(tableDescriptions.stream()
                 .flatMap(d -> d.getFieldDescriptionList().stream())
                 .collect(Collectors.toList()));
-        return new TableToDatasetAdapter(table, mergedDescription);
-    }
-
-    public TableToDatasetAdapter(Table table, TableDescription tableDescription) throws DatasetIntegrityError {
-        queryableFields = new QueryableFields(tableDescription.getFieldDescriptionList(), table);
-        this.dataPoints = calculateDataPoints();
+        return new TableToDatasetAdapter(table, mergedDescription, shouldAddAddressToDatapoint);
     }
 
     private List<DataPoint> calculateDataPoints() {
@@ -50,6 +60,11 @@ public class TableToDatasetAdapter implements Dataset {
 
     private Map<String, String> fetchFieldsAndMakeDataPoint(TableCell cell) {
         Map<String, String> fields = queryableFields.queryFieldsAt(cell.getRow(), cell.getColumn());
+        if (shouldAddAddressToDatapoint) {
+            fields.put("meta.dataFileType", "table");
+            fields.put("meta.addressInDataFile.row", String.valueOf(cell.getRow()));
+            fields.put("meta.addressInDataFile.column", String.valueOf(cell.getColumn()));
+        }
         fields.put("value", cell.getValue());
         return fields;
     }
