@@ -43,34 +43,34 @@ class CSVReadingTest {
         expectedForSampledata = new ArrayList<>();
 
         DataPoint d1 = DataPoint.of(
-            "entity.state", "Kerala",
-            "entity.district", "Kannur",
-            "indicator", "MMR",
-            "value", "0.5"
+                "entity.state", "Kerala",
+                "entity.district", "Kannur",
+                "indicator", "MMR",
+                "value", "0.5"
         );
         expectedForSampledata.add(d1);
 
         DataPoint d2 = DataPoint.of(
-            "entity.state", "Kerala",
-            "entity.district", "Kannur",
-            "indicator", "U5MR",
-            "value", "0.6"
+                "entity.state", "Kerala",
+                "entity.district", "Kannur",
+                "indicator", "U5MR",
+                "value", "0.6"
         );
         expectedForSampledata.add(d2);
 
         DataPoint d3 = DataPoint.of(
-            "entity.state", "Karnataka",
-            "entity.district", "Bangalore",
-            "indicator", "MMR",
-            "value", "1"
+                "entity.state", "Karnataka",
+                "entity.district", "Bangalore",
+                "indicator", "MMR",
+                "value", "1"
         );
         expectedForSampledata.add(d3);
 
         DataPoint d4 = DataPoint.of(
-            "entity.state", "Karnataka",
-            "entity.district", "Bangalore",
-            "indicator", "U5MR",
-            "value", "1.2"
+                "entity.state", "Karnataka",
+                "entity.district", "Bangalore",
+                "indicator", "U5MR",
+                "value", "1.2"
         );
         expectedForSampledata.add(d4);
     }
@@ -181,5 +181,58 @@ class CSVReadingTest {
         System.out.println(elements);
         assert (elements.containsAll(expectedForSampledata));
         assert (expectedForSampledata.containsAll(elements));
+    }
+
+    @Test
+    void patternsWithoutPattern() throws DatasetIntegrityError, IOException {
+        Table table = new CSVTable("""
+                State,District,Maternal Mortality Rate - Urban,Maternal Mortality Rate - Rural,Infant Mortality Rate
+                Karnataka,Bangalore Urban,1.3,NA,0.5
+                Karnataka,Mysore,1.5,1.6,0.4
+                """);
+        TableDescription tableDescription = TableDescription.fromString("""
+                {
+                  "fields": [
+                    {
+                      "field": "entity.state",
+                      "range": "A2:A"
+                    },
+                    {
+                      "field": "entity.district",
+                      "range": "B2:B"
+                    },
+                    {
+                      "field": "indicator",
+                      "patterns": [
+                        {
+                          "range": "C1:D1",
+                          "pattern": "(.*) - .*"
+                        },
+                        {
+                	      "range": "E1"
+                	    }
+                      ]
+                    },
+                    {
+                      "field": "settlement",
+                      "range": "C1:D1",
+                      "pattern": ".* - (.*)"
+                    },
+                    {
+                      "field": "value",
+                      "range": "C2:"
+                    }
+                  ]
+                }
+                """);
+
+        List<DataPoint> obtained = new TableToDatasetAdapter(table, tableDescription).getData();
+        assert (obtained.contains(
+                DataPoint.of(
+                        "entity.state", "Karnataka",
+                        "entity.district", "Mysore",
+                        "indicator", "Infant Mortality Rate",
+                        "value", "0.4")
+        ));
     }
 }
